@@ -1,0 +1,15 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+    <h1>Product List</h1>
+
+    {% if Products %}
+    <ul>
+        {% for product in Products %}
+        <li>{{ product }}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>There are no products.</p>
+    {% endif %}
+{% endblock %}

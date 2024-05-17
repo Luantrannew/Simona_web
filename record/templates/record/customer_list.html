@@ -1,0 +1,56 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+    <h1>Customer List</h1>
+
+    {% if customers %}
+    <ul>
+        {% for customer in customers %}
+        <li>
+            <a href="{% url 'customer_detail' customer.pk %}">{{ customer.name }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>There are no customers.</p>
+    {% endif %}
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% comment %} {% extends "base_generic.html" %}
+
+{% block content %}
+    <h1>Customer List</h1>
+
+    {% if customers %}
+    <ul>
+      {% for customer in customers %}
+        <li>{{ customer }}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>There are no customer.</p>
+    {% endif %}
+{% endblock %} {% endcomment %}
+
