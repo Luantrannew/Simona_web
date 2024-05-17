@@ -2,6 +2,15 @@
 
 This is a Django-based Order Management System that manages customers, products, orders, and order lines. The project includes functionality to import data from a CSV file into the database and display lists of customers, products, and order lines on web pages.
 
+![image](https://github.com/Luantrannew/Simona_web/assets/62492632/a2d8b62d-aea8-4d34-acc7-6e90e44b4172)
+
+![image](https://github.com/Luantrannew/Simona_web/assets/62492632/20da5387-932b-41a3-b454-da285e966187)
+
+![image](https://github.com/Luantrannew/Simona_web/assets/62492632/5e8ae6c9-f856-43f9-908d-c3f2ac7551ae)
+
+![image](https://github.com/Luantrannew/Simona_web/assets/62492632/df2a8e56-2be1-44c1-9177-052a964ac9b9)
+
+
 ## Features
 
 - Import customer, product, order, and order line data from a CSV file.
