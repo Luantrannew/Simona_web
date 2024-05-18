@@ -24,12 +24,12 @@ This is a Django-based Order Management System that manages customers, products,
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/yourusername/your-repo-name.git
+    git clone https://github.com/Luantrannew/Simona_web
     ```
 
 2. Navigate to the project directory:
     ```bash
-    cd your-repo-name
+    cd Simona_web
     ```
 
 3. Create a virtual environment:
@@ -54,6 +54,7 @@ This is a Django-based Order Management System that manages customers, products,
 
 6. Apply migrations:
     ```bash
+    python manage.py makemigrations
     python manage.py migrate
     ```
 
