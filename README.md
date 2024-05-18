@@ -11,8 +11,9 @@ This is a Django-based Order Management System that manages customers, products,
 ## Requirements
 
 - Python 3.11.4
-- Django 5.0.6
-- Pandas
+- Django==2.2
+- Django==5.0.6
+- pandas==2.2.2
 
 ## Installation
 
