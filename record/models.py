@@ -47,7 +47,7 @@ class Order(models.Model):
 class OrderLine(models.Model) :
     order = models.ForeignKey("Order", on_delete=models.CASCADE,null=True)
     product = models.ForeignKey("Product", on_delete=models.CASCADE,null=False)
-    so_luong = models.IntegerField()
+    quantity = models.IntegerField()
     
     def get_absolute_url(self):
         return reverse("order_line_detail", kwargs={"pk": self.pk})
