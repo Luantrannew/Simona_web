@@ -24,7 +24,7 @@ This is a Django-based Order Management System that manages customers, products,
 
 2. Navigate to the project directory:
     ```bash
-    cd Simona_web
+    cd simona
     ```
 
 3. Create a virtual environment:
