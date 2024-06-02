@@ -1,0 +1,90 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+<br>
+<a href="{% url 'create_customer' %}" class="btn btn-primary">Add New Customer</a>
+<a href="{% url 'create_product' %}" class="btn btn-primary">Add New Product</a>
+<br>
+<h1>Add new order</h1>
+<br>
+<form id="order-form" method="post" action="{% url 'form' %}">
+  {% csrf_token %}
+  
+  <div class="form-group">
+    <label for="time">Order Time:</label>
+    <input type="text" class="form-control" id="time" name="time" value="{{ current_time }}" readonly>
+  </div>
+
+  <div class="form-group">
+    <label for="orderID">Order ID:</label>
+    <input type="text" class="form-control" id="orderID" name="order_id" required>
+  </div>
+  
+  <div class="form-group">
+    <label for="customerSelect">Select Customer:</label>
+
+    <select class="form-control" id="customerSelect" name="customer">
+      {% for customer in customers %}
+        <option value="{{ customer.code }}">{{ customer.code }} - {{ customer.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <h2> Orderline </h2>
+  
+  <div id="orderlines-container">
+  </div>
+
+  <button type="button" id="add-orderline-btn" class="btn btn-success">Add New Orderline</button>
+  <button type="submit" class="btn btn-danger">End Order</button>
+</form>
+
+
+
+<script src="https://code.jquery.com/jquery-3.7.1.js"    
+        integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="    
+        crossorigin="anonymous">
+</script>
+
+<script>
+$(document).ready(function() {
+  var orderlineCount = 1; 
+
+  // Template for orderline fields
+  var orderlineTemplate = `
+    <div class="orderline">
+      <h3>Orderline {count}</h3>
+
+      <div class="form-group">
+        <label for="productSelect{count}">Select Product:</label>
+        <select class="form-control" id="productSelect{count}" name="product{count}">
+
+          {% for product in products %}
+            <option value="{{ product.code }}">{{ product.code }} - {{ product.name }}</option>
+          {% endfor %}
+
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="quantity{count}">Quantity:</label>
+        <input type="number" class="form-control" id="quantity{count}" name="quantity{count}" required>
+      </div>
+    </div>
+  `;
+
+  // Function to add new orderline fields
+  function addOrderline() {
+    var newOrderlineHtml = orderlineTemplate.replace(/{count}/, orderlineCount);   //khởi tạo biến
+    $('#orderlines-container').append(newOrderlineHtml);   
+    orderlineCount++; 
+  }
+
+  // Add new orderline when "Add New Orderline" button is clicked
+  $('#add-orderline-btn').click(function() {
+    addOrderline();
+  });
+});
+</script>
+
+{% endblock %} 

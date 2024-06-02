@@ -1,17 +1,17 @@
 {% extends "base_generic.html" %}
 
 {% block content %}
-    <h1>Order Detail: {{ order.order_code }}</h1>
+    <h1>Order Detail: {{ order.code }}</h1>
     <h3>Customer: {{ order.customer.name }}</h3>
     
-    <h2>Products:</h2>
+    <h2>Products:</h2>  
     {% if order_lines %}
     <ul>
         {% for line in order_lines %}
         <li>
             Product: {{ line.product.name }}<br>
             Unit Price: {{ line.product.unit_price }}<br>
-            Quantity: {{ line.so_luong }}
+            Quantity: {{ line.quantity }}
         </li>
         {% endfor %}
     </ul>

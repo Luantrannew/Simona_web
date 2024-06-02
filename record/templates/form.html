@@ -1,0 +1,113 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+
+<form method="post">
+  {% csrf_token %}
+  <div class="mb-3">
+    <label for="exampleInputEmail1" class="form-label">Email address</label>
+    <input name="due-email" type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
+    <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+
+
+
+<form method="post">
+{% csrf_token %}
+
+    {{ order_form.as_p }}  
+    {{ orderline_formset.management_form }}
+
+    <div id="orderlines">
+        {% for form in orderline_formset %}
+        <div class="orderline">
+            <h3>Order line {{1}}</h3>      {% comment %} bắt đầu từ 1 {% endcomment %}
+            
+            <p>
+                {{ form.product_name.label_tag }}
+                {{ form.product_name }}
+            </p>
+
+            <p>
+                {{ form.quantity.label_tag }}
+                {{ form.quantity }}
+            </p>
+
+        </div>
+        {% endfor %}
+    </div>
+
+    <button type="button" id="add-orderline">Thêm order line mới</button>
+    <button type="submit" name="submit" value="finish">Kết thúc order</button>
+</form>
+
+<br></br>
+<p>
+    <a href="{% url 'create_customer' %}">Thêm khách hàng mới</a>
+</p>
+<p>
+    <a href="{% url 'create_product' %}">Thêm sản phẩm mới</a>
+</p>
+
+<div id="orderline-template" style="display: none;">      {% comment %} tạo template cho orderline {% endcomment %}
+    <div class="orderline">
+        <h3>Order line __index__</h3>
+        <p>
+            <label for="id_orderline_set-__index__-product_name">Product name:</label>
+            <select name="orderline_set-__index__-product_name" id="id_orderline_set-__index__-product_name">
+                {% for product in products %}
+                <option value="{{ product.pk }}">{{ product.name }}</option>
+                {% endfor %}
+            </select>
+            {% comment %} product name không phải là multiple choice, và dữ liệu orderline tăng thêm không lưu được {% endcomment %}
+        </p>
+
+
+        <p>
+            <label for="id_orderline_set-__index__-quantity">Quantity:</label>
+            <input type="number" name="orderline_set-__index__-quantity" id="id_orderline_set-__index__-quantity">
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+{% block extra_js %}
+
+
+
+<script src="https://code.jquery.com/jquery-3.7.1.js"    
+        integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="    
+        crossorigin="anonymous">
+        
+</script>
+
+
+<script>
+    $(document).ready(function() {
+        var orderlineIndex = {{ orderline_formset.total_form_count|default:0 }};
+
+
+        $('#add-orderline').click(function() {
+            
+            var newOrderline = $('#orderline-template').html().replace(/__index__/g, orderlineIndex);
+            $('#orderlines').append(newOrderline);
+            updateOrderLineNumbers();
+            orderlineIndex++;
+        });
+
+        function updateOrderLineNumbers() {
+            $('#orderlines .orderline').each(function(index) {
+                $(this).find('h3').text('Order line ' + (index + 1));
+            });
+        }
+    });
+</script>
+
+{% endblock %}

@@ -31,7 +31,7 @@ class Customer (models.Model):
 
 
 class Order(models.Model):
-    order_code = models.CharField(max_length=10,primary_key=True,default=True)
+    order_code = models.CharField(max_length=255,primary_key=True,default=True)
     time = models.DateTimeField(auto_now=False, auto_now_add=False,null=False)
     customer = models.ForeignKey("Customer", on_delete=models.CASCADE, null=False)
 
@@ -54,5 +54,3 @@ class OrderLine(models.Model) :
     
     def __str__(self):
         return f"{self.pk}"
-    
-
