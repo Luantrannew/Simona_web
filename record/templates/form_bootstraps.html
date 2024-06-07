@@ -75,7 +75,7 @@ $(document).ready(function() {
 
   // Function to add new orderline fields
   function addOrderline() {
-    var newOrderlineHtml = orderlineTemplate.replace(/{count}/, orderlineCount);   //khởi tạo biến
+    var newOrderlineHtml = orderlineTemplate.replace(/{count}/g, orderlineCount);   //khởi tạo biến
     $('#orderlines-container').append(newOrderlineHtml);   
     orderlineCount++; 
   }

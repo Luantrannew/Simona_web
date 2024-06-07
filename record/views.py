@@ -279,6 +279,7 @@ def form(request):
 
         i = 1
         while f'product{i}' in request.POST:
+            
             product_code = request.POST.get(f'product{i}')
             quantity = request.POST.get(f'quantity{i}')
             product = Product.objects.get(code=product_code)
