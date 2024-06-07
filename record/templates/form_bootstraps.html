@@ -35,9 +35,17 @@
   <div id="orderlines-container">
   </div>
 
+  <div id="message-container" style="display: none;">
+    <p id="output-message"></p>
+  </div>
+
   <button type="button" id="add-orderline-btn" class="btn btn-success">Add New Orderline</button>
-  <button type="submit" class="btn btn-danger">End Order</button>
+  <button type="submit" class="btn btn-danger">End Order</button> 
 </form>
+
+<div id="message-container" style="display: none;">
+  <p id="output-message"></p>
+</div>
 
 
 
@@ -46,45 +54,65 @@
         crossorigin="anonymous">
 </script>
 
+
 <script>
-$(document).ready(function() {
-  var orderlineCount = 1; 
-
-  // Template for orderline fields
-  var orderlineTemplate = `
-    <div class="orderline">
-      <h3>Orderline {count}</h3>
-
-      <div class="form-group">
-        <label for="productSelect{count}">Select Product:</label>
-        <select class="form-control" id="productSelect{count}" name="product{count}">
-
-          {% for product in products %}
-            <option value="{{ product.code }}">{{ product.code }} - {{ product.name }}</option>
-          {% endfor %}
-
-        </select>
+  $(document).ready(function() {
+      var orderlineCount = 1; 
+  
+      // Template for orderline fields
+      var orderlineTemplate = `
+      <div class="orderline">
+          <h3>Orderline {count}</h3>
+  
+          <div class="form-group">
+              <label for="productSelect{count}">Select Product:</label>
+              <select class="form-control" id="productSelect{count}" name="product{count}">
+                  {% for product in products %}
+                  <option value="{{ product.code }}">{{ product.code }} - {{ product.name }}</option>
+                  {% endfor %}
+              </select>
+          </div>
+  
+          <div class="form-group">
+              <label for="quantity{count}">Quantity:</label>
+              <input type="number" class="form-control" id="quantity{count}" name="quantity{count}" required>
+          </div>
       </div>
-
-      <div class="form-group">
-        <label for="quantity{count}">Quantity:</label>
-        <input type="number" class="form-control" id="quantity{count}" name="quantity{count}" required>
-      </div>
-    </div>
-  `;
-
-  // Function to add new orderline fields
-  function addOrderline() {
-    var newOrderlineHtml = orderlineTemplate.replace(/{count}/g, orderlineCount);   //khởi tạo biến
-    $('#orderlines-container').append(newOrderlineHtml);   
-    orderlineCount++; 
-  }
-
-  // Add new orderline when "Add New Orderline" button is clicked
-  $('#add-orderline-btn').click(function() {
-    addOrderline();
+      `;
+  
+      // Function to add new orderline fields
+      function addOrderline() {
+          var newOrderlineHtml = orderlineTemplate.replace(/{count}/g, orderlineCount);
+          $('#orderlines-container').append(newOrderlineHtml);
+          orderlineCount++; 
+      }
+  
+      // Add new orderline when "Add New Orderline" button is clicked
+      $('#add-orderline-btn').click(function() {
+          addOrderline();
+      });
+  
+      // Submit form using Fetch API
+      $('#order-form').submit(function(e) {
+          e.preventDefault();
+  
+          var formData = new FormData(this);
+          fetch($(this).attr('action'), {
+              method: 'POST',
+              body: formData
+          })
+          .then(response => {
+              if (response.ok) {
+                  $('#output-message').text("Your enquiry has been sent!");
+                  $('#message-container').show();
+                  setTimeout(function() {
+                      $('#output-message').text('');
+                      $('#message-container').hide();
+                  }, 3000);
+              }
+          });
+      });
   });
-});
-</script>
+</script> 
 
-{% endblock %} 
+{% endblock %}
