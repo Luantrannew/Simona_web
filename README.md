@@ -9,12 +9,7 @@ This is a Django-based Order Management System that manages customers, products,
 - Save the imported data into a PostgreSQL database.
 - Display lists of customers, products, and order lines.
 
-## Requirements
 
-- Python 3.11.4
-- Django==2.2
-- Django==5.0.6
-- pandas==2.2.2
 
 ## Installation
 
@@ -38,10 +33,6 @@ This is a Django-based Order Management System that manages customers, products,
         ```bash
         .\env\Scripts\activate
         ```
-    - On macOS and Linux:
-        ```bash
-        source env/bin/activate
-        ```
 
 5. Install the required packages:
     ```bash
@@ -62,11 +53,5 @@ This is a Django-based Order Management System that manages customers, products,
     ```
 
 2. Open your web browser and go to `http://127.0.0.1:8000` to access the application.
-
-## Importing Data
-
-To import data from a CSV file, ensure your CSV file is properly formatted with the necessary columns for customers, products, orders, and order lines.
-
-Update the path to your CSV file in the `data` variable in the views where data import is handled.
 
 
