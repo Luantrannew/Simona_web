@@ -1,52 +1,114 @@
-from django.shortcuts import render,redirect
-from .models import Customer,Product,Order,OrderLine
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from .models import Customer, Product, Order, OrderLine, CustomerSegments, Category
 import pandas as pd
 import time
 
 
-data = 'C:\DE\data\Simona_data.csv'   # dữ liệu csv record của cửa hàng
+data = r'C:\DE\data\Simona_data.csv'  # Đường dẫn tới tệp CSV
+
+def import_data(csv_data):
+    start_time = time.time()
+    df = pd.read_csv(csv_data)
+    
+    for idx, row in df.iterrows():
+        # Import CustomerSegments (if available)
+        if 'Mã PKKH' in df.columns and 'Mô tả Phân Khúc Khách hàng' in df.columns:
+            segment_code = row['Mã PKKH']
+            segment_name = row['Mô tả Phân Khúc Khách hàng']
+            segment, _ = CustomerSegments.objects.get_or_create(seg_code=segment_code, defaults={'seg_name': segment_name})
+        else:
+            segment = None
+        
+        # Import Category (if available)
+        if 'Mã nhóm hàng' in df.columns and 'Tên nhóm hàng' in df.columns:
+            cat_code = row['Mã nhóm hàng']
+            cat_name = row['Tên nhóm hàng']
+            category, _ = Category.objects.get_or_create(cat_code=cat_code, defaults={'cat_name': cat_name})
+        else:
+            category = None
+        
+        # Import Product
+        if 'Mã mặt hàng' in df.columns and 'Tên mặt hàng' in df.columns:
+            product_code = row['Mã mặt hàng']
+            product_name = row['Tên mặt hàng']
+            unit_price = row.get('Đơn giá', 0)  # Default to 0 if 'Đơn giá' is not available
+            
+            product_defaults = {
+                'name': product_name,
+                'unit_price': unit_price,
+                'cat': category  
+            }
+            
+            product, _ = Product.objects.get_or_create(code=product_code, defaults=product_defaults)
+        
+        # Import Customer
+        if 'Mã khách hàng' in df.columns and 'Tên khách hàng' in df.columns:
+            customer_code = row['Mã khách hàng']
+            customer_name = row['Tên khách hàng']
+            
+            customer_defaults = {
+                'name': customer_name,
+                'seg': segment  # Assign segment from models
+            }
+            
+            customer, _ = Customer.objects.get_or_create(code=customer_code, defaults=customer_defaults)
+        
+        # # Import Order
+        # if 'Mã đơn hàng' in df.columns and 'Thời gian tạo đơn' in df.columns:
+        #     customer = Customer.objects.filter(code=row['Mã khách hàng']).last()
+        #     order_defaults = {
+        #         'time': row['Thời gian tạo đơn'],
+        #         'customer': customer
+        #     }
+        #     order, _ = Order.objects.get_or_create(order_code=row['Mã đơn hàng'], defaults=order_defaults)
+        
+        # # Import OrderLine
+        # if 'Mã mặt hàng' in df.columns and 'SL' in df.columns:
+        #     product_code = row['Mã mặt hàng']
+        #     order_code = row['Mã đơn hàng']
+        #     product = Product.objects.filter(code=product_code).last()
+        #     order = Order.objects.filter(order_code=order_code).last()
+
+        #     if product and order:
+        #         order_line_defaults = {
+        #             'order': order,
+        #             'product': product,
+        #             'quantity': row['SL']
+        #         }
+        #         OrderLine.objects.get_or_create(order=order, product=product, defaults=order_line_defaults)
+
+    end_time = time.time()
+    print("Data loading time:", end_time - start_time, "seconds")
+
+    return Customer.objects.all(), Product.objects.all(), Order.objects.all(), OrderLine.objects.all()
 
 def index(request):
-  template = 'index.html'
-  ###### import data cho product và customer ##########
-  def import_data(model, csv_data, code_column, name_column, unit_price_column=None):
-      df = pd.read_csv(csv_data)
-      for idx,row in df.iterrows():             # hàm iterrows() trả về một tuples chứa giá trị là index và row 
-          defaults = {'name': row[name_column]} # ghi cột name của cả 2 model từ các biến truyền vào
-
-          if unit_price_column and unit_price_column in row:
-              defaults['unit_price'] = row[unit_price_column]   # ghi đơn giá vào cho model sản phẩm
-          
-          obj, created = model.objects.get_or_create(   
-              code=row[code_column],       # điều kiện để tìm kiếm đối tượng 
-              defaults=defaults            # ghi các giá trị mặc định vào nếu không tìm thấy
-          )
-          if created:
-              print('Created:', obj)
-          else:
-              print('Already exists:', obj)
-      
-      return model.objects.all()
-
-  products = import_data(Product, data, 'Mã mặt hàng','Tên mặt hàng', unit_price_column= 'Đơn giá' )    # gọi hàm 
-  customers = import_data(Customer, data, 'Mã khách hàng', 'Tên khách hàng')          
-
-  context = {
-      'customers': customers,
-      'products': products
-  }
-  return render(request, template, context)
+    template = 'index.html'
+    # customers, products, orders, order_lines = import_data(data)
+    
+    context = {
+        # 'customers': customers,
+        # 'products': products,
+        # 'orders': orders,
+        # 'order_lines': order_lines
+    }
+    return render(request, template, context)
 
 
 ##############################
 ######## list custumer ######
+
+from django.db.models import Max
 def customer_list(request):
   template = 'record/customer_list.html'
-  customer_objects = Customer.objects.all()
+#   customer_objects = Customer.objects.all().annotate(last_order_time=Order.Max('order__time')).order_by('-last_order_time')
+  customer_objects = Customer.objects.annotate(last_order_time=Max('order__time')).order_by('-last_order_time')
 
   customers = [{
     'pk':obj.pk,
     'name':obj.name,
+    'seg' :obj.seg
 } for obj in customer_objects]
 
 
@@ -54,6 +116,11 @@ def customer_list(request):
       'customers': customers
   }
   return render(request, template, context)
+
+def customer_delete(request, pk):
+    customer = Customer.objects.filter(pk=pk).last()
+    customer.delete()
+    return redirect('customer_list')
 
 
 ##################################################
@@ -99,97 +166,57 @@ def product_list (request):
       'Products': products
   }
   return render(request, template, context)
+
+
+def product_detail (request,pk):
+    template = 'record/product_detail.html'
+    product = Product.objects.filter(pk=pk).last()
+    context = {
+        'product': product
+    }
+
+    return render(request, template, context)
+
+def product_delete(request, pk):
+    product = Product.objects.filter(pk=pk).last()
+    product.delete()
+    return redirect('product_list')
+
+
+
+
 ###############################################
 ########### order_from_customer ###################
 
-def order_from_customer(request) :
-  template = 'record/order_from_customer.html'
+from django.db.models import Sum, F
 
-  def import_data(csv_data) :
-      df = pd.read_csv(csv_data)
-      for idx, row in df.iterrows():
-          customer = Customer.objects.filter(code=row['Mã khách hàng']).last()
-          defaults = {
-              'order_code': row['Mã đơn hàng'],
-              'time' : row['Thời gian tạo đơn'],
-              'customer' : customer
-                      }
-          obj, created = Order.objects.get_or_create(
-              order_code = row['Mã đơn hàng'],                          ## kiểm tra thông qua order_code
-              defaults=defaults
-          )
-          if created:
-              print('Created:', obj)
-          else:
-              print('Already exists:', obj)
-              
-      return Order.objects.all()
+def order_from_customer(request):
+    template = 'record/order_from_customer.html'
+    order_objects = Order.objects.all().order_by('-time')
 
-  orders = import_data(data)
+    orders = []
+    for obj in order_objects:
+        # Tính tổng total_amount cho mỗi đơn hàng
+        total_amount = OrderLine.objects.filter(order=obj).aggregate(
+            total=Sum(F('quantity') * F('product__unit_price'))
+        )['total'] or 0
 
-  context = {
-      'orders' : orders
-  }
-  return render(request, template, context)
-  
+        orders.append({
+            'code': obj.pk,
+            'time': obj.time,
+            'customer': obj.customer,
+            'total_amount': total_amount
+        })
 
-############################################################
-########## order_line ######################################
+    context = {
+        'orders': orders,
+    }
+    return render(request, template, context)
 
-# data = 'C:\DE\data\Simona_data.csv'   # Path to your CSV data
-
-def order_line(request):
-  template = 'record/order_line.html'
-
-  start_time = time.time()
-
-  def import_ol_data(csv_data):
-      df = pd.read_csv(csv_data)
-
-      for idx, row in df.iterrows():
-          product_code = row['Mã mặt hàng']
-          order_code = row['Mã đơn hàng']
-
-          product = Product.objects.filter(code=product_code).last()
-          order = Order.objects.filter(order_code=order_code).last()
-
-          if product is None:
-              print(f'Product not found for code {product_code}')         # in ra các product bị sai / không hoạt động 
-              continue
-
-          defaults = {
-              'order': order,
-              'product': product,
-              'quantity': row['SL']
-          }
-          # print(product.product_id)
-          obj, created = OrderLine.objects.get_or_create(
-              order=order,
-              product=product,
-
-              # product_id = product => sai vì product_id không tồn tại, product là một object phải gán với một object
-              # có thể dùng thêm một cách là product__id = product.id
-              
-              defaults=defaults
-          )
-          if created:
-              print('Created:', obj)
-          else:
-              print('Already exists:', obj)
-
-      return OrderLine.objects.all()
-
-  order_lines = import_ol_data(data)
-  end_time = time.time()  # Record end time
-
-  print("Data loading time:", end_time - start_time, "seconds")
-
-  context = {
-      'OrderLines': order_lines
-  }
-
-  return render(request, template, context)
-
+def order_delete(request, pk):
+    order = Order.objects.filter(pk=pk).last()
+    order.delete()
+    return redirect('order_from_customer')
 
 ####################################
 ## Form làm từ Django###############
@@ -249,6 +276,16 @@ def create_order(request):
 #################################################
 ####### form điền thông tin về order ############
 
+def generate_order_code():
+    # Lấy mã đơn hàng mới dựa trên số lượng đơn hàng hiện tại + 1
+    last_order = Order.objects.last()
+    if last_order:
+        last_order_number = int(last_order.order_code.split('ORD')[1])
+        new_order_number = last_order_number + 1
+    else:
+        new_order_number = 1
+    return f'ORD{new_order_number:07d}'
+
 from django.utils import timezone
 from datetime import datetime
 
@@ -256,21 +293,48 @@ from datetime import datetime
 def form(request):
     template = 'form_bootstraps.html'
 
-    products = Product.objects.all()
-    customers = Customer.objects.all()
-    current_time = datetime.now()  # Lấy thời gian hiện tại
+    segments_objects = CustomerSegments.objects.all()
+    segments = [{   
+        'seg_name': obj.seg_name ,  
+        'seg_code': obj.seg_code,
+    } for obj in segments_objects]
 
-
+    cato__objects = Category.objects.all()
+    cat = [{   
+        'cat_name': obj.cat_name ,  
+        'cat_code': obj.cat_code,
+    } for obj in cato__objects]
+    
+    products_objects = Product.objects.all()
+    products = [{
+        'pk': obj.pk,
+        'code': obj.code,
+        'name': obj.name,
+        'unit_price' : obj.unit_price,
+        'cat_name': obj.cat.cat_name ,  
+        'cat_code': obj.cat.cat_code,
+    } for obj in products_objects]
+ 
+    customers_objects = Customer.objects.all()
+    customers = [{
+        'pk': obj.pk,
+        'code': obj.code,
+        'name': obj.name,
+        'seg_name': obj.seg.seg_name ,  
+        'seg_code': obj.seg.seg_code ,
+    } for obj in customers_objects]
+    
+    current_time = datetime.now()
 
     if request.method == 'POST':
         print(request.POST)
 
-        # Lấy dữ liệu từ request.POST   
-        order_id = request.POST.get('order_id')  
+        # Extract data from POST request
+        order_id = generate_order_code()  
         customer_code = request.POST.get('customer')
         order_time = current_time    
 
-        # Tạo đối tượng Order
+        # Create Order object
         order = Order.objects.create(
             order_code=order_id,
             time=order_time,
@@ -279,7 +343,6 @@ def form(request):
 
         i = 1
         while f'product{i}' in request.POST:
-            
             product_code = request.POST.get(f'product{i}')
             quantity = request.POST.get(f'quantity{i}')
             product = Product.objects.get(code=product_code)
@@ -289,61 +352,152 @@ def form(request):
                 quantity=quantity
             )
             i += 1
-
-        # Redirect hoặc xử lý tiếp theo
-        return redirect('order_success')
+        # Return success response
+        return JsonResponse({'message': 'Order created successfully'})
 
     context = {
         'products': products,
         'customers': customers,
-        'current_time': current_time, 
+        'current_time': current_time,
+        'segments': segments,
+        'cat' : cat,
+
     }
     return render(request, template, context)
 
 
 
-def order_success(request):
-  template = 'record/order_success.html'
-  context = {}
-  return render(request, template, context)
+# def order_success(request):
+#   template = 'record/order_success.html'
+#   context = {}
+#   return render(request, template, context)
+
+    
 
 def create_customer(request):
-    template = 'record/customer_form.html'
-    context = {}
-
     if request.method == 'POST':
-        # Lấy dữ liệu từ form
         customer_code = request.POST.get('customerCode')
         customer_name = request.POST.get('customerName')
+        seg_code = request.POST.get('seg')
 
-        # Tạo đối tượng Customer và lưu vào cơ sở dữ liệu
+        segment = CustomerSegments.objects.get(seg_code=seg_code)
+
+        # Generate customer code if not provided
+        if not customer_code:
+            last_customer = Customer.objects.order_by('-code').first()
+            if last_customer:
+                last_code = int(last_customer.code[3:])  # Extract numeric part
+                new_customer_number = last_code + 1
+            else:
+                new_customer_number = 1
+            customer_code = f'CUZ{new_customer_number:05d}'
+
         customer = Customer.objects.create(
-           code=customer_code, 
-           name=customer_name)
+            code=customer_code,
+            name=customer_name,
+            seg=segment
+        )
+
+        response_data = {
+            'message': 'Tạo thành công khách hàng',
+            'customer': {
+                'code': customer.code,
+                'name': customer.name,
+                'seg_name': segment.seg_name,
+                'seg_code': segment.seg_code,
+            }
+        }
         
-        return redirect('form')
-    else:
-        return render(request, template, context)
-
-  
-
+        return JsonResponse(response_data)
+    
+    segments = CustomerSegments.objects.all()
+    context = {'segments': segments}
+    return render(request, 'record/customer_form.html', context)
 
 def create_product(request):
-    template = 'record/product_form.html'
-    
     if request.method == 'POST':
-        # Lấy dữ liệu từ form
         product_code = request.POST.get('code')
         product_name = request.POST.get('name')
         unit_price = request.POST.get('unit_price')
+        cat_code = request.POST.get('cat')
 
-        # Tạo đối tượng Product và lưu vào cơ sở dữ liệu
+        category = Category.objects.get(cat_code=cat_code)
+
         product = Product.objects.create(
-           code=product_code, 
-           name=product_name, 
-           unit_price=unit_price)
+            code=product_code,
+            name=product_name,
+            unit_price=unit_price,
+            cat=category
+        )
+    
+        # Prepare data to return as JSON response
+        response_data = {
+            'message': 'Đã tạo thành công sản phẩm mới',
+            'product': {
+                'code': product.code,
+                'name': product.name,
+                'unit_price': product.unit_price,
+            }
+        }
+        return JsonResponse(response_data, status=201)
+    
+    categories = Category.objects.all()
+    context = {'categories': categories}
+    return render(request, 'record/product_form.html', context)
+
+################################################
+################################################
+def segment_list(request):
+  template = 'record/segment_list.html'
+  segments = CustomerSegments.objects.all()  # Lấy tất cả các nhóm khách hàng
+
+  context = {
+      'segments': segments,
+  }
+  return render(request,template, context)
+    
+from django.http import JsonResponse
+
+def create_segment(request):
+    if request.method == 'POST':
+        seg_code = request.POST.get('seg_code')
+        seg_name = request.POST.get('seg_name')
         
-        return redirect('form')
-    else:
-        context = {}  
-        return render(request, template, context)
+        segment = CustomerSegments.objects.create(
+            seg_code=seg_code,
+            seg_name=seg_name
+        )
+        
+        # Construct your response data
+        response_data = {
+            'message': 'Tạo thành công nhóm khách hàng',
+            'segment_id': segment.pk,
+            'segment_code': segment.seg_code,
+            'segment_name': segment.seg_name,
+        }
+        
+        return JsonResponse(response_data)
+    
+    template = 'record/segment_form.html'
+    context = {}
+    return render(request, template, context)
+
+def delete_segment(request, segment_id):
+    template = 'record/segment_list.html'
+    segment= CustomerSegments.objects.filter(pk=segment_id).last()
+    
+    if request.method == 'POST':
+        segment.delete()
+        return redirect('segment_list')
+    
+    context = {}
+    return render(request, template, context)
+
+
+def customer_list_api(request):
+    customers = Customer.objects.all().values('code', 'name')
+    return JsonResponse(list(customers), safe=False)
+
+def product_list_api(request):
+    products = Product.objects.all().values('code', 'name')
+    return JsonResponse(list(products), safe=False)

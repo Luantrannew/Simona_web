@@ -5,7 +5,7 @@
 <h2>Add new Product</h2>
 <br>
 
-<form method="post">
+<form id="productForm" method="post" action="{% url 'create_product' %}">
     {% csrf_token %}
     <div class="form-group">
         <label for="code">Product Code:</label>
@@ -19,6 +19,45 @@
         <label for="unit_price">Unit Price:</label>
         <input type="number" class="form-control" id="unit_price" name="unit_price" required>
     </div>
+    <div class="form-group">
+        <label for="cat">Category:</label>
+        <select class="form-control" id="cat" name="cat">
+            {% for category in categories %}
+            <option value="{{ category.cat_code }}">{{ category.cat_name }}</option>
+            {% endfor %}
+        </select>
+    </div>
     <button type="submit" class="btn btn-primary">Submit</button>
 </form>
+
+
+
+<script>
+document.getElementById('productForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    var form = this;
+    var formData = new FormData(form);
+
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        alert(data.message);  
+        form.reset();  
+    })
+    
+    });
+});
+</script>
+
 {% endblock %}

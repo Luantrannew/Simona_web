@@ -1,24 +1,61 @@
 {% extends "base_generic.html" %}
 
-
 {% block content %}
 
 <br>
 <h2>Add new Customer</h2>
 <br>
 
-<form method="post">
+<form id="customerForm" method="post" action="{% url 'create_customer' %}">
     {% csrf_token %}
     <div class="form-group">
         <label for="customerCode">Customer Code:</label>
-        <input type="text" class="form-control" id="customerCode" name="customerCode" required>
+        <input type="text" class="form-control" id="customerCode" name="customerCode" >
     </div>
     <div class="form-group">
         <label for="customerName">Customer Name:</label>
         <input type="text" class="form-control" id="customerName" name="customerName" required>
     </div>
-    <!-- Thêm các trường khác của khách hàng tại đây -->
+    <div class="form-group">
+        <label for="seg">Segment:</label>
+        <select class="form-control" id="seg" name="seg">
+            {% for segment in segments %}
+            <option value="{{ segment.seg_code }}">{{ segment.seg_name }}</option>
+            {% endfor %}
+        </select>
+    </div>
     <button type="submit" class="btn btn-primary">Submit</button>
-</form>
-{% endblock %}
 
+</form>
+<br>
+    <div id="responseMessage" style="display: none;"></div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    document.getElementById('customerForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        var form = this;
+        var formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => {
+            return response.json();
+                })
+        .then(data => {
+            document.getElementById("responseMessage").style.display = "block";
+        document.getElementById("responseMessage").innerHTML = `
+            <div class="alert alert-success" role="alert">
+                ${data.message}
+                `;
+            document.getElementById("customerForm").reset();
+        })
+    })
+</script>
+
+{% endblock %}

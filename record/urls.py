@@ -5,19 +5,35 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name='index'),
+
     path('customer/', views.customer_list, name='customer_list'),
-    path('product/', views.product_list, name='product_list'),
-    path('OrderFromCustomer/', views.order_from_customer, name='order_from_customer'),
-    path('orderline/', views.order_line, name='order_line'),
+    path('customer/delete/<str:pk>/', views.customer_delete, name='customer_delete'),
     path('customer/<str:pk>/', views.customer_detail, name='customer_detail'),
+
+    path('product/', views.product_list, name='product_list'),
+    path('product/delete/<str:pk>/', views.product_delete, name='product_delete'),
+    path('product/<str:pk>/', views.product_detail, name='product_detail'),
+
+
+    path('OrderFromCustomer/', views.order_from_customer, name='order_from_customer'),
+    path('order-delete/<str:pk>/', views.order_delete, name='order_delete'),
     path('order/<str:order_code>/', views.order_detail, name='order_detail'),
 
-    # path('create_order/', views.create_order, name='create_order'),
-    path('create_order/success/', views.order_success, name='order_success'),
+    
     path('create_customer/', views.create_customer, name='create_customer'),
     path('create_product/', views.create_product, name='create_product'),
     path('form/',views.form, name='form'),
 
+    path('segment-list/', views.segment_list, name='segment_list'),
+    path('create-segment/', views.create_segment, name='create_segment'),
+    path('delete-segment/<str:segment_id>/', views.delete_segment, name='delete_segment'),
+
+    path('api/customers/', views.customer_list_api, name='customer_list_api'),
+    path('api/products/', views.product_list_api, name='product_list_api'),
+
 
 ]
 
+# path('create_order/', views.create_order, name='create_order'),
+    # path('create_order/success/', views.order_success, name='order_success'),
+    # path('orderline/', views.order_line, name='order_line'),

@@ -1,0 +1,54 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+<div class="container">
+    <br>
+    <h2>Create New Customer Segment</h2>
+    <br>
+    <form id="segmentForm">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="segCode">Segment Code:</label>
+            <input type="text" class="form-control" id="segCode" name="seg_code" required>
+        </div>
+        <div class="form-group">
+            <label for="segName">Segment Name:</label>
+            <input type="text" class="form-control" id="segName" name="seg_name" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+    <br>
+    <div id="responseMessage" style="display: none;"></div>
+</div>
+
+<script>
+document.getElementById("segmentForm").addEventListener("submit", function(event) {
+    event.preventDefault();  
+    var formData = new FormData(this);
+    
+    fetch("{% url 'create_segment' %}", {
+        method: "POST",
+        body: formData,
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => {
+        return response.json();
+            })
+    .then(data => {
+        // Hiển thị thông báo thành công
+        document.getElementById("responseMessage").style.display = "block";
+        document.getElementById("responseMessage").innerHTML = `
+            <div class="alert alert-success" role="alert">
+                ${data.message}
+            </div>
+            <p><strong>Mã nhóm khách hàng:</strong> ${data.segment_code}</p>
+            <p><strong>Tên nhóm khách hàng:</strong> ${data.segment_name}</p>
+        `;
+        document.getElementById("segmentForm").reset();
+    });
+});
+</script>
+
+{% endblock %}

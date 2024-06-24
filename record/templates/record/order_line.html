@@ -1,9 +1,12 @@
 {% extends "base_generic.html" %}
 
 {% block content %}
-    <h1>Order line</h1>
-
-    <p>Đã import xong.</p>
-
+<div class="container">
+    <h2>Order Lines</h2>
+    <ul>
+        {% for order_line in OrderLines %}
+        <li>{{ order_line.order.order_code }} - {{ order_line.product.name }} - {{ order_line.quantity }}</li>
+        {% endfor %}
+    </ul>
+</div>
 {% endblock %}
-

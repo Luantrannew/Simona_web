@@ -1,0 +1,48 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+    <title>Segment List</title>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="main-content">
+        <h2>Segment List</h2>
+
+    <!-- Nút để dẫn đến form tạo segment -->
+    <a href="{% url 'create_segment' %}" class="btn btn-primary">Thêm nhóm khách hàng</a>
+
+    {% if segments %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Mã nhóm</th>
+                <th scope="col">Tên nhóm</th>
+                <th scope="col">Thao tác</th>  
+            </tr>
+        </thead>
+        <tbody>
+            {% for segment in segments %}
+            <tr>
+                <td>{{ segment.seg_code }}</td>
+                <td>{{ segment.seg_name }}</td>
+                <td>
+                    <form action="{% url 'delete_segment' segment_id=segment.pk %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this order?');">delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3">Không có nhóm khách hàng nào.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Không có nhóm khách hàng nào.</p>
+    {% endif %}
+    </div>
+</div>
+{% endblock %}

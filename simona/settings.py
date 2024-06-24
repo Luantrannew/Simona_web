@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'simona.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'test_1',
+        'NAME': 'simona',
         'USER': 'LUAN',
         'PASSWORD': '11062003'
     }

@@ -1,118 +1,274 @@
 {% extends "base_generic.html" %}
 
 {% block content %}
+
 <br>
-<a href="{% url 'create_customer' %}" class="btn btn-primary">Add New Customer</a>
-<a href="{% url 'create_product' %}" class="btn btn-primary">Add New Product</a>
+
+<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addCustomerModal">
+  Add New Customer
+</button>
+
+
+<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addProductModal">
+  Add New Product
+</button>
+
 <br>
 <h1>Add new order</h1>
 <br>
-<form id="order-form" method="post" action="{% url 'form' %}">
-  {% csrf_token %}
+<div class="container">
+  <div class="main-content">
+    <form id="order-form" method="post" action="{% url 'form' %}">
+      {% csrf_token %}
+      
+      <div class="form-group">
+        <label for="time">Order Time:</label>
+        <input type="text" class="form-control" id="time" name="time" value="{{ current_time }}" readonly>
+      </div>
   
-  <div class="form-group">
-    <label for="time">Order Time:</label>
-    <input type="text" class="form-control" id="time" name="time" value="{{ current_time }}" readonly>
+      <div class="form-group">
+        <label for="customerSelect">Select Customer:</label>
+        <select class="form-control" id="customerSelect" name="customer">
+          {% for customer in customers %}
+            <option value="{{ customer.code }}">{{ customer.code }} - {{ customer.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+  
+      <h2> Orderline </h2>
+      
+      <div id="orderlines-container"></div>
+  
+      <button type="button" id="add-orderline-btn" class="btn btn-success">Add New Orderline</button>
+      <button type="submit" class="btn btn-danger">End Order</button> 
+    </form>
+  <br>
+    <div id="responseMessage" style="display: none;"></div>
   </div>
-
-  <div class="form-group">
-    <label for="orderID">Order ID:</label>
-    <input type="text" class="form-control" id="orderID" name="order_id" required>
+  <div class="sidebar">
+    <h3>Thành tiền</h3>
+    <p>Chưa làm .</p>
+    <!-- Các nội dung khác bạn muốn hiển thị -->
   </div>
   
-  <div class="form-group">
-    <label for="customerSelect">Select Customer:</label>
+</div>
 
-    <select class="form-control" id="customerSelect" name="customer">
-      {% for customer in customers %}
-        <option value="{{ customer.code }}">{{ customer.code }} - {{ customer.name }}</option>
-      {% endfor %}
-    </select>
-  </div>
 
-  <h2> Orderline </h2>
   
-  <div id="orderlines-container">
+
+
+<div id="responseMessage" style="display: none;"></div>
+
+<!-- Modal for adding new customer -->
+<div class="modal fade" id="addCustomerModal" tabindex="-1" role="dialog" aria-labelledby="addCustomerModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addCustomerModalLabel">Add New Customer</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- Form for adding a new customer -->
+        <form id="addCustomerForm" method="post" action="{% url 'create_customer' %}">
+          {% csrf_token %}
+          <div class="form-group">
+            <label for="customerCode">Customer Code:</label>
+            <input type="text" class="form-control" id="customerCode" name="customerCode" >
+          </div>
+          <div class="form-group">
+            <label for="customerName">Customer Name:</label>
+            <input type="text" class="form-control" id="customerName" name="customerName" required>
+          </div>
+          <div class="form-group">
+            <label for="seg">Segment:</label>
+            <select class="form-control" id="seg" name="seg" required>
+              {% for segment in segments %}
+                <option value="{{ segment.seg_code }}">{{ segment.seg_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Save Customer</button>
+        </form>
+      </div>
+    </div>
   </div>
-
-  <div id="message-container" style="display: none;">
-    <p id="output-message"></p>
+</div>
+<!-- Modal for adding new product -->
+<div class="modal fade" id="addProductModal" tabindex="-1" role="dialog" aria-labelledby="addProductModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addProductModalLabel">Add New Product</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- Form for adding a new product -->
+        <form id="addProductForm" method="post" action="{% url 'create_product' %}">
+          {% csrf_token %}
+          <div class="form-group">
+            <label for="productCode">Product Code:</label>
+            <input type="text" class="form-control" id="productCode" name="code" required>
+          </div>
+          <div class="form-group">
+            <label for="productName">Product Name:</label>
+            <input type="text" class="form-control" id="productName" name="name" required>
+          </div>
+          <div class="form-group">
+            <label for="unitPrice">Unit Price:</label>
+            <input type="number" class="form-control" id="unitPrice" name="unit_price" required>
+          </div>
+          <div class="form-group">
+            <label for="cat">Category:</label>
+            <select class="form-control" id="cat" name="cat" required>
+              {% for category in cat %}
+                <option value="{{ category.cat_code }}">{{ category.cat_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Save Product</button>
+        </form>
+      </div>
+    </div>
   </div>
-
-  <button type="button" id="add-orderline-btn" class="btn btn-success">Add New Orderline</button>
-  <button type="submit" class="btn btn-danger">End Order</button> 
-</form>
-
-<div id="message-container" style="display: none;">
-  <p id="output-message"></p>
 </div>
 
 
 
-<script src="https://code.jquery.com/jquery-3.7.1.js"    
-        integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="    
-        crossorigin="anonymous">
-</script>
-
-
+{% block scripts %}
 <script>
   $(document).ready(function() {
-      var orderlineCount = 1; 
+    var orderlineCount = 1; 
   
-      // Template for orderline fields
-      var orderlineTemplate = `
-      <div class="orderline">
-          <h3>Orderline {count}</h3>
-  
-          <div class="form-group">
-              <label for="productSelect{count}">Select Product:</label>
-              <select class="form-control" id="productSelect{count}" name="product{count}">
-                  {% for product in products %}
-                  <option value="{{ product.code }}">{{ product.code }} - {{ product.name }}</option>
-                  {% endfor %}
-              </select>
-          </div>
-  
-          <div class="form-group">
-              <label for="quantity{count}">Quantity:</label>
-              <input type="number" class="form-control" id="quantity{count}" name="quantity{count}" required>
-          </div>
-      </div>
-      `;
-  
-      // Function to add new orderline fields
-      function addOrderline() {
-          var newOrderlineHtml = orderlineTemplate.replace(/{count}/g, orderlineCount);
-          $('#orderlines-container').append(newOrderlineHtml);
-          orderlineCount++; 
-      }
-  
-      // Add new orderline when "Add New Orderline" button is clicked
-      $('#add-orderline-btn').click(function() {
-          addOrderline();
-      });
-  
-      // Submit form using Fetch API
-      $('#order-form').submit(function(e) {
-          e.preventDefault();
-  
-          var formData = new FormData(this);
-          fetch($(this).attr('action'), {
-              method: 'POST',
-              body: formData
-          })
-          .then(response => {
-              if (response.ok) {
-                  $('#output-message').text("Your enquiry has been sent!");
-                  $('#message-container').show();
-                  setTimeout(function() {
-                      $('#output-message').text('');
-                      $('#message-container').hide();
-                  }, 3000);
-              }
-          });
-      });
+    // Template for orderline fields
+    var orderlineTemplate = `
+    <div class="orderline">
+        <h3>Orderline {{ count }}</h3>
+
+        {% comment %}
+        <div class="form-group">
+            <label for="productSelect{{ count }}">Select Product:</label>
+            <select class="form-control" id="productSelect{{ count }}" name="product{{ count }}">
+                {% for product in products %}
+                <option value="{{ product.code }}">{{ product.code }} - {{ product.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endcomment %}
+
+        <div class="form-group">
+            <label for="productSelect{{ count }}">Select Product:</label>
+            <select class="form-control product-select" id="productSelect{{ count }}" name="product{{ count }}">
+                {% for product in products %}
+                <option value="{{ product.code }}">{{ product.code }} - {{ product.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="quantity{{ count }}">Quantity:</label>
+            <input type="number" class="form-control" id="quantity{{ count }}" name="quantity{{ count }}" required>
+        </div>
+    </div>
+    `;
+
+    // Function to add new orderline fields
+    function addOrderline() {
+        var newOrderlineHtml = orderlineTemplate.replace(/{count}/g, orderlineCount);
+        $('#orderlines-container').append(newOrderlineHtml);
+        orderlineCount++; 
+    }
+
+    // Add new orderline when "Add New Orderline" button is clicked
+    $('#add-orderline-btn').click(function() {
+        addOrderline();
+    });
+
+    function resetOrderlines() {
+        $('#orderlines-container').empty();
+        orderlineCount = 1;
+    }
+
+    // Submit form using Fetch API
+    $('#order-form').submit(function(e) {
+        e.preventDefault();
+
+        var formData = new FormData(this);
+        fetch($(this).attr('action'), {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById("responseMessage").style.display = "block";
+            document.getElementById("responseMessage").innerHTML = `
+            <div class="alert alert-success" role="alert">
+                ${data.message}
+            </div>`;
+            document.getElementById("order-form").reset();
+            resetOrderlines();
+        });
+    });
+
+    // Function to handle AJAX form submission for both modals
+    function submitForm(formId, successMessage) {
+        var formData = new FormData(document.getElementById(formId));
+        fetch($('#' + formId).attr('action'), {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            $('#responseMessage').html(`
+                <div class="alert alert-success" role="alert">
+                    ${successMessage}
+                </div>
+            `).show();
+
+            setTimeout(function() {
+                $('#responseMessage').fadeOut('slow');
+            }, 2000);
+            
+            $('#' + formId)[0].reset();
+            
+            if (formId === 'addCustomerForm' && data.customer) {
+                var newOption = `<option value="${data.customer.code}">${data.customer.code} - ${data.customer.name}</option>`;
+                $('#customerSelect').append(newOption);
+                $('#addCustomerModal').modal('hide');
+            }
+        });
+    }
+
+    // Function to update product selects with new products
+    function updateProductSelects(products) {
+        $('.product-select').each(function() {
+            var select = $(this);
+            select.empty();
+            products.forEach(function(product) {
+                select.append(`<option value="${product.code}">${product.code} - ${product.name}</option>`);
+            });
+        });
+    }
+
+    // Handle Add New Customer form submission
+    $('#addCustomerForm').submit(function(e) {
+        e.preventDefault();
+        submitForm('addCustomerForm', 'Đã tạo thành công khách hàng');
+    });
+
+    // Handle Add New Product form submission
+    $('#addProductForm').submit(function(e) {
+        e.preventDefault();
+        submitForm('addProductForm', 'Đã tạo thành công sản phẩm');
+    });
   });
-</script> 
+</script>
+{% endblock %}
 
 {% endblock %}

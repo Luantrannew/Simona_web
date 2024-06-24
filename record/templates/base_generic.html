@@ -10,34 +10,105 @@
           rel="stylesheet" 
           integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" 
           crossorigin="anonymous">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    {% comment %} <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"> {% endcomment %}
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-..." crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-..." crossorigin="anonymous"></script>
 
-    
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/contact.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+
     {% load static %}
-    
 
+    <style>
+        .sidebar-nav .btn-secondary {
+            width: 100%; /* Makes buttons full width */
+            background-color: #6c757d; /* Sets a common background color */
+            color: white; /* Sets the text color */
+            margin-bottom: 10px; /* Adds space between buttons */
+        }
+
+        .sidebar-nav .dropdown-menu {
+            width: 100%; /* Makes dropdowns full width */
+        }
+
+        .sidebar-nav .dropdown-item {
+            background-color: #6c757d; /* Sets background color for dropdown items */
+            color: white; /* Sets the text color */
+        }
+
+        .sidebar-nav .dropdown-item:hover {
+            background-color: #5a6268; /* Sets hover background color for dropdown items */
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 80% 20%; /* Chia màn hình thành hai cột, cột thứ nhất chiếm 80%, cột thứ hai chiếm 20% */
+            gap: 20px; /* Khoảng cách giữa hai cột */
+            padding: 20px; /* Khoảng cách từ viền */
+        }
+
+        .main-content {
+            grid-column: 1 / 2; /* Cột chính chiếm từ cột 1 đến cột 2 */
+        }
+
+        .sidebar {
+            grid-column: 2 / 3; /* Cột sidebar chiếm từ cột 2 đến cột 3 */
+            background-color: #f0f0f0; /* Màu nền của sidebar */
+            border-left: 1px solid #ccc; /* Viền bên trái */
+            padding: 10px; /* Khoảng cách bên trong của sidebar */
+        }
+    </style>
 </head>
 <body>
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-sm-2">
-            {% block sidebar %}
-            <ul class="sidebar-nav">
-                <li><a href="{% url 'index' %}">Home (Data load)</a></li>
-                {% comment %} <li><a href="{% url 'create_order' %}">Create order</a></li> {% endcomment %}
-                <li><a href="{% url 'order_from_customer' %}">Orders(data load)</a></li>
-                <li><a href="{% url 'order_line' %}">Orderline(data load)</a></li>
-                <li><a href="{% url 'customer_list' %}">Customer</a></li>
-                <li><a href="{% url 'product_list' %}">Product</a></li>
-                <li><a href="{% url 'form' %}">form</a></li>
-            </ul>
-            {% endblock %}
-        </div>
-        <div class="col-sm-10">
-            {% block content %}{% endblock %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-2">
+                {% block sidebar %}
+                <div class="sidebar-nav">
+                    <a href="{% url 'index' %}">Home (Data load)</a>
+                    <br><br>
+
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                        Đơn hàng
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                            <li><a href="{% url 'order_from_customer' %}">Danh sách đơn hàng</a></li>
+                        </ul>
+                    </div>
+                    <br>
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                        Khách hàng
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                            <li><a href="{% url 'customer_list' %}">Danh sách khách hàng</a></li>
+                            <li><a href="{% url 'segment_list' %}">Nhóm khách hàng</a></li>
+                        </ul>
+                    </div>
+                    <br>
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                        Sản phẩm
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                            <li><a href="{% url 'product_list' %}">Danh sách sản phẩm</a></li>
+                        </ul>
+                    </div>
+                    <br>
+                    <a href="{% url 'form' %}" class="btn btn-secondary text-white" role="button">Bán hàng tại quầy</a>
+                </div>
+                {% endblock %}
+            </div>
+            <div class="col-sm-10">
+                {% block content %}{% endblock %}
+            </div>
         </div>
     </div>
-</div>
 
 {% block extra_js %}{% endblock %}
 </body>
