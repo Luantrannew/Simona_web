@@ -47,8 +47,7 @@
   </div>
   <div class="sidebar">
     <h3>Thành tiền</h3>
-    <p>Chưa làm .</p>
-    <!-- Các nội dung khác bạn muốn hiển thị -->
+    <p id="total-amount"></p>
   </div>
   
 </div>
@@ -138,7 +137,7 @@
 
 
 
-{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
 <script>
   $(document).ready(function() {
     var orderlineCount = 1; 
@@ -146,34 +145,23 @@
     // Template for orderline fields
     var orderlineTemplate = `
     <div class="orderline">
-        <h3>Orderline {{ count }}</h3>
-
-        {% comment %}
+        <h3>Orderline ${orderlineCount}</h3>
         <div class="form-group">
-            <label for="productSelect{{ count }}">Select Product:</label>
-            <select class="form-control" id="productSelect{{ count }}" name="product{{ count }}">
+            <label for="productSelect${orderlineCount}">Select Product:</label>
+            <select class="form-control product-select" id="productSelect${orderlineCount}" name="product${orderlineCount}">
                 {% for product in products %}
-                <option value="{{ product.code }}">{{ product.code }} - {{ product.name }}</option>
+                <option value="{{ product.code }}" data-unit-price="{{ product.unit_price }}">{{ product.code }} - {{ product.name }}</option>
                 {% endfor %}
             </select>
         </div>
-        {% endcomment %}
-
         <div class="form-group">
-            <label for="productSelect{{ count }}">Select Product:</label>
-            <select class="form-control product-select" id="productSelect{{ count }}" name="product{{ count }}">
-                {% for product in products %}
-                <option value="{{ product.code }}">{{ product.code }} - {{ product.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="quantity{{ count }}">Quantity:</label>
-            <input type="number" class="form-control" id="quantity{{ count }}" name="quantity{{ count }}" required>
+            <label for="quantity${orderlineCount}">Quantity:</label>
+            <input type="number" class="form-control quantity" id="quantity${orderlineCount}" name="quantity${orderlineCount}" required>
         </div>
     </div>
     `;
+
+
 
     // Function to add new orderline fields
     function addOrderline() {
@@ -192,24 +180,44 @@
         orderlineCount = 1;
     }
 
+    // Update total amount when quantity changes
+    $(document).on('input', '.quantity', function() {
+      calculateTotalAmount();
+    });
+
+    // Function to calculate total amount
+    function calculateTotalAmount() {
+      var totalAmount = 0;
+      $('.orderline').each(function() {
+        var quantity = $(this).find('.quantity').val();
+        var unitPrice = $(this).find('.product-select option:selected').data('unit-price');
+        if (quantity && unitPrice) {
+          totalAmount += quantity * unitPrice;
+        }
+      });
+      $('#total-amount').text(totalAmount.toFixed(2));
+    }
     // Submit form using Fetch API
     $('#order-form').submit(function(e) {
-        e.preventDefault();
+      e.preventDefault();
 
-        var formData = new FormData(this);
-        fetch($(this).attr('action'), {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById("responseMessage").style.display = "block";
-            document.getElementById("responseMessage").innerHTML = `
-            <div class="alert alert-success" role="alert">
-                ${data.message}
-            </div>`;
-            document.getElementById("order-form").reset();
-            resetOrderlines();
+      var formData = new FormData(this);
+
+      fetch($(this).attr('action'), {
+          method: 'POST',
+          body: formData
+      })
+
+      .then(response => response.json())
+      //không sai
+      .then(data => {
+          document.getElementById("responseMessage").style.display = "block";
+          document.getElementById("responseMessage").innerHTML = `
+          <div class="alert alert-success" role="alert">
+              ${data.message}
+          </div>`;
+          document.getElementById("order-form").reset();
+          resetOrderlines();
         });
     });
 
@@ -243,18 +251,7 @@
                 $('#addCustomerModal').modal('hide');
             }
         });
-    }
-
-    // Function to update product selects with new products
-    function updateProductSelects(products) {
-        $('.product-select').each(function() {
-            var select = $(this);
-            select.empty();
-            products.forEach(function(product) {
-                select.append(`<option value="${product.code}">${product.code} - ${product.name}</option>`);
-            });
-        });
-    }
+    } 
 
     // Handle Add New Customer form submission
     $('#addCustomerForm').submit(function(e) {
@@ -269,6 +266,5 @@
     });
   });
 </script>
-{% endblock %}
 
 {% endblock %}

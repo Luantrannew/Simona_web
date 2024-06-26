@@ -1,0 +1,9 @@
+cd ..
+
+cd DE
+
+.\env\Scripts\activate
+
+cd Simona_web
+
+python manage.py runserver

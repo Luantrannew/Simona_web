@@ -28,8 +28,7 @@ urlpatterns = [
     path('create-segment/', views.create_segment, name='create_segment'),
     path('delete-segment/<str:segment_id>/', views.delete_segment, name='delete_segment'),
 
-    path('api/customers/', views.customer_list_api, name='customer_list_api'),
-    path('api/products/', views.product_list_api, name='product_list_api'),
+    
 
 
 ]
@@ -37,3 +36,5 @@ urlpatterns = [
 # path('create_order/', views.create_order, name='create_order'),
     # path('create_order/success/', views.order_success, name='order_success'),
     # path('orderline/', views.order_line, name='order_line'),
+# path('api/customers/', views.customer_list_api, name='customer_list_api'),
+    # path('api/products/', views.product_list_api, name='product_list_api'),

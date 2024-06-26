@@ -344,14 +344,18 @@ def form(request):
         i = 1
         while f'product{i}' in request.POST:
             product_code = request.POST.get(f'product{i}')
+            print(product_code)
             quantity = request.POST.get(f'quantity{i}')
-            product = Product.objects.get(code=product_code)
-            orderline = OrderLine.objects.create(
-                order=order,
-                product=product,
-                quantity=quantity
-            )
-            i += 1
+            print(quantity)
+            if product_code and quantity:
+                product = Product.objects.get(code=product_code)
+                OrderLine.objects.create(
+                    order=order,
+                    product=product,
+                    quantity=int(quantity)
+                )
+
+            i += 1  
         # Return success response
         return JsonResponse({'message': 'Order created successfully'})
 
@@ -439,7 +443,7 @@ def create_product(request):
                 'unit_price': product.unit_price,
             }
         }
-        return JsonResponse(response_data, status=201)
+        return JsonResponse(response_data)
     
     categories = Category.objects.all()
     context = {'categories': categories}
@@ -494,10 +498,10 @@ def delete_segment(request, segment_id):
     return render(request, template, context)
 
 
-def customer_list_api(request):
-    customers = Customer.objects.all().values('code', 'name')
-    return JsonResponse(list(customers), safe=False)
+# def customer_list_api(request):
+#     customers = Customer.objects.all().values('code', 'name')
+#     return JsonResponse(list(customers), safe=False)
 
-def product_list_api(request):
-    products = Product.objects.all().values('code', 'name')
-    return JsonResponse(list(products), safe=False)
+# def product_list_api(request):
+#     products = Product.objects.all().values('code', 'name')
+#     return JsonResponse(list(products), safe=False)

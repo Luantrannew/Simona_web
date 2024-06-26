@@ -29,9 +29,11 @@
     </div>
     <button type="submit" class="btn btn-primary">Submit</button>
 </form>
+<br>
+    <div id="responseMessage" style="display: none;"></div>
 
 
-
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> 
 <script>
 document.getElementById('productForm').addEventListener('submit', function(event) {
     event.preventDefault();
@@ -46,18 +48,18 @@ document.getElementById('productForm').addEventListener('submit', function(event
         }
     })
     .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
         return response.json();
     })
     .then(data => {
-        alert(data.message);  
-        form.reset();  
+        document.getElementById("responseMessage").style.display = "block";
+    document.getElementById("responseMessage").innerHTML = `
+        <div class="alert alert-success" role="alert">
+            ${data.message}
+            `;
+        document.getElementById("customerForm").reset();
     })
     
     });
-});
 </script>
 
 {% endblock %}
