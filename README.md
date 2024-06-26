@@ -1,12 +1,14 @@
 # Django Order Management System
 
 This is a Django-based Order Management System that manages customers, products, orders, and order lines. The project includes functionality to import data from a CSV file and save it into a PostgreSQL database.
-![image](https://github.com/Luantrannew/Simona_web/assets/62492632/f47ada96-ffa9-4d40-960b-7b0094d39667)
+
+![image](https://github.com/Luantrannew/Simona_web/assets/62492632/7c6d7685-2c3b-42b3-b4d6-d99ccbc6e560)
+![image](https://github.com/Luantrannew/Simona_web/assets/62492632/151abb15-07b2-4668-bd0e-98c0e215e335)
+
 
 
 ## Features
 
-- Import customer, product, order, and order line data from a CSV file.
 - Save the imported data into a PostgreSQL database.
 - Display lists of customers, products, and order lines.
 
