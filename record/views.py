@@ -276,6 +276,9 @@ def create_order(request):
 #################################################
 ####### form điền thông tin về order ############
 
+from django.utils import timezone
+from datetime import datetime
+
 def generate_order_code():
     # Lấy mã đơn hàng mới dựa trên số lượng đơn hàng hiện tại + 1
     last_order = Order.objects.last()
@@ -285,9 +288,6 @@ def generate_order_code():
     else:
         new_order_number = 1
     return f'ORD{new_order_number:07d}'
-
-from django.utils import timezone
-from datetime import datetime
 
 
 def form(request):
@@ -365,18 +365,8 @@ def form(request):
         'current_time': current_time,
         'segments': segments,
         'cat' : cat,
-
     }
     return render(request, template, context)
-
-
-
-# def order_success(request):
-#   template = 'record/order_success.html'
-#   context = {}
-#   return render(request, template, context)
-
-    
 
 def create_customer(request):
     if request.method == 'POST':
@@ -418,9 +408,19 @@ def create_customer(request):
     context = {'segments': segments}
     return render(request, 'record/customer_form.html', context)
 
+def generate_product_code(cat_code):
+    # Lấy sản phẩm cuối cùng theo nhóm hàng
+    last_product = Product.objects.filter(cat__cat_code=cat_code).order_by('-code').first()
+    if last_product:
+        last_product_number = int(last_product.code.replace(cat_code, ''))
+        new_product_number = last_product_number + 1
+    else:
+        new_product_number = 1
+    return f'{cat_code}{new_product_number:04d}'
+
 def create_product(request):
     if request.method == 'POST':
-        product_code = request.POST.get('code')
+        # product_code = request.POST.get('code')
         product_name = request.POST.get('name')
         unit_price = request.POST.get('unit_price')
         cat_code = request.POST.get('cat')
@@ -428,7 +428,7 @@ def create_product(request):
         category = Category.objects.get(cat_code=cat_code)
 
         product = Product.objects.create(
-            code=product_code,
+            code=generate_product_code(cat_code),
             name=product_name,
             unit_price=unit_price,
             cat=category
@@ -496,12 +496,3 @@ def delete_segment(request, segment_id):
     
     context = {}
     return render(request, template, context)
-
-
-# def customer_list_api(request):
-#     customers = Customer.objects.all().values('code', 'name')
-#     return JsonResponse(list(customers), safe=False)
-
-# def product_list_api(request):
-#     products = Product.objects.all().values('code', 'name')
-#     return JsonResponse(list(products), safe=False)

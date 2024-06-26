@@ -8,7 +8,6 @@
   Add New Customer
 </button>
 
-
 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addProductModal">
   Add New Product
 </button>
@@ -16,6 +15,7 @@
 <br>
 <h1>Add new order</h1>
 <br>
+
 <div class="container">
   <div class="main-content">
     <form id="order-form" method="post" action="{% url 'form' %}">
@@ -49,12 +49,7 @@
     <h3>Thành tiền</h3>
     <p id="total-amount"></p>
   </div>
-  
 </div>
-
-
-  
-
 
 <div id="responseMessage" style="display: none;"></div>
 
@@ -94,6 +89,7 @@
     </div>
   </div>
 </div>
+
 <!-- Modal for adding new product -->
 <div class="modal fade" id="addProductModal" tabindex="-1" role="dialog" aria-labelledby="addProductModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
@@ -110,7 +106,7 @@
           {% csrf_token %}
           <div class="form-group">
             <label for="productCode">Product Code:</label>
-            <input type="text" class="form-control" id="productCode" name="code" required>
+            <input type="text" class="form-control" id="productCode" name="code" readonly>
           </div>
           <div class="form-group">
             <label for="productName">Product Name:</label>
@@ -135,49 +131,44 @@
   </div>
 </div>
 
-
-
-<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
 <script>
   $(document).ready(function() {
     var orderlineCount = 1; 
-  
-    // Template for orderline fields
-    var orderlineTemplate = `
-    <div class="orderline">
-        <h3>Orderline ${orderlineCount}</h3>
-        <div class="form-group">
-            <label for="productSelect${orderlineCount}">Select Product:</label>
-            <select class="form-control product-select" id="productSelect${orderlineCount}" name="product${orderlineCount}">
-                {% for product in products %}
-                <option value="{{ product.code }}" data-unit-price="{{ product.unit_price }}">{{ product.code }} - {{ product.name }}</option>
-                {% endfor %}
-            </select>
+
+    // Template function for orderline fields
+    function orderlineTemplate(count) {
+        return `
+        <div class="orderline">
+            <h3>Orderline ${count}</h3>
+            <div class="form-group">
+                <label for="productSelect${count}">Select Product:</label>
+                <select class="form-control product-select" id="productSelect${count}" name="product${count}">
+                    {% for product in products %}
+                    <option value="{{ product.code }}" data-unit-price="{{ product.unit_price }}">{{ product.code }} - {{ product.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="quantity${count}">Quantity:</label>
+                <input type="number" class="form-control quantity" id="quantity${count}" name="quantity${count}" required>
+            </div>
         </div>
-        <div class="form-group">
-            <label for="quantity${orderlineCount}">Quantity:</label>
-            <input type="number" class="form-control quantity" id="quantity${orderlineCount}" name="quantity${orderlineCount}" required>
-        </div>
-    </div>
-    `;
-
-
-
-    // Function to add new orderline fields
-    function addOrderline() {
-        var newOrderlineHtml = orderlineTemplate.replace(/{count}/g, orderlineCount);
-        $('#orderlines-container').append(newOrderlineHtml);
-        orderlineCount++; 
+        `;
     }
 
-    // Add new orderline when "Add New Orderline" button is clicked
-    $('#add-orderline-btn').click(function() {
-        addOrderline();
-    });
+    // Initialize with one orderline
+    addOrderline();
+
+    function addOrderline() {
+      var newOrderlineHtml = orderlineTemplate(orderlineCount);
+      $('#orderlines-container').append(newOrderlineHtml);
+      orderlineCount++;
+    }
 
     function resetOrderlines() {
-        $('#orderlines-container').empty();
-        orderlineCount = 1;
+      $('#orderlines-container').empty();
+      orderlineCount = 1;
+      addOrderline(); // Re-initialize with one orderline
     }
 
     // Update total amount when quantity changes
@@ -197,72 +188,73 @@
       });
       $('#total-amount').text(totalAmount.toFixed(2));
     }
+
     // Submit form using Fetch API
     $('#order-form').submit(function(e) {
       e.preventDefault();
-
       var formData = new FormData(this);
 
       fetch($(this).attr('action'), {
-          method: 'POST',
-          body: formData
+        method: 'POST',
+        body: formData
       })
-
       .then(response => response.json())
-      //không sai
       .then(data => {
-          document.getElementById("responseMessage").style.display = "block";
-          document.getElementById("responseMessage").innerHTML = `
+        $('#responseMessage').html(`
           <div class="alert alert-success" role="alert">
-              ${data.message}
-          </div>`;
-          document.getElementById("order-form").reset();
-          resetOrderlines();
-        });
+            ${data.message}
+          </div>
+        `).show().fadeOut(2000);
+        $('#order-form')[0].reset();
+        resetOrderlines();
+      });
     });
 
-    // Function to handle AJAX form submission for both modals
     function submitForm(formId, successMessage) {
-        var formData = new FormData(document.getElementById(formId));
-        fetch($('#' + formId).attr('action'), {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            $('#responseMessage').html(`
-                <div class="alert alert-success" role="alert">
-                    ${successMessage}
-                </div>
-            `).show();
-
-            setTimeout(function() {
-                $('#responseMessage').fadeOut('slow');
-            }, 2000);
-            
-            $('#' + formId)[0].reset();
-            
-            if (formId === 'addCustomerForm' && data.customer) {
-                var newOption = `<option value="${data.customer.code}">${data.customer.code} - ${data.customer.name}</option>`;
-                $('#customerSelect').append(newOption);
-                $('#addCustomerModal').modal('hide');
-            }
-        });
-    } 
+      var formData = new FormData(document.getElementById(formId));
+      fetch($('#' + formId).attr('action'), {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        $('#responseMessage').html(`
+          <div class="alert alert-success" role="alert">
+            ${successMessage}
+          </div>
+        `).show().fadeOut(2000);
+        $('#' + formId)[0].reset();
+        if (formId === 'addCustomerForm' && data.customer) {
+          var newOption = `<option value="${data.customer.code}">${data.customer.code} - ${data.customer.name}</option>`;
+          $('#customerSelect').append(newOption);
+          $('#addCustomerModal').modal('hide');
+        }
+        if (formId === 'addProductForm' && data.product) {
+          var newOption = `<option value="${data.product.code}" data-unit-price="${data.product.unit_price}">${data.product.code} - ${data.product.name}</option>`;
+          $('.product-select').append(newOption); // Update product selects in orderline
+          $('#addProductModal').modal('hide');
+        }
+      });
+    }
 
     // Handle Add New Customer form submission
     $('#addCustomerForm').submit(function(e) {
-        e.preventDefault();
-        submitForm('addCustomerForm', 'Đã tạo thành công khách hàng');
+      e.preventDefault();
+      submitForm('addCustomerForm', 'Đã tạo thành công khách hàng');
     });
 
     // Handle Add New Product form submission
     $('#addProductForm').submit(function(e) {
-        e.preventDefault();
-        submitForm('addProductForm', 'Đã tạo thành công sản phẩm');
+      e.preventDefault();
+      submitForm('addProductForm', 'Đã tạo thành công sản phẩm');
+    });
+
+    // Add new orderline when "Add New Orderline" button is clicked
+    $('#add-orderline-btn').click(function() {
+      addOrderline();
     });
   });
 </script>

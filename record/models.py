@@ -2,7 +2,7 @@ from django.db import models
 from django.urls import reverse
 
 class Product(models.Model):
-    code = models.CharField(max_length=8, primary_key=True)
+    code = models.CharField(max_length=255, primary_key=True)
     name = models.CharField(max_length=50)
     unit_price = models.IntegerField()
     cat = models.ForeignKey("Category", on_delete=models.CASCADE,default=None)
