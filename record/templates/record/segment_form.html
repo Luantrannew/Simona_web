@@ -3,19 +3,19 @@
 {% block content %}
 <div class="container">
     <br>
-    <h2>Create New Customer Segment</h2>
+    <h2>Tạo nhóm khách hàng mới</h2>
     <br>
     <form id="segmentForm">
         {% csrf_token %}
         <div class="form-group">
-            <label for="segCode">Segment Code:</label>
+            <label for="segCode">Mã nhóm hàng:</label>
             <input type="text" class="form-control" id="segCode" name="seg_code" required>
         </div>
         <div class="form-group">
-            <label for="segName">Segment Name:</label>
+            <label for="segName">Tên nhóm hàng:</label>
             <input type="text" class="form-control" id="segName" name="seg_name" required>
         </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <button type="submit" class="btn btn-primary">Lưu</button>
     </form>
     <br>
     <div id="responseMessage" style="display: none;"></div>

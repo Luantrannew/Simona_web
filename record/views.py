@@ -83,15 +83,17 @@ def import_data(csv_data):
 
     return Customer.objects.all(), Product.objects.all(), Order.objects.all(), OrderLine.objects.all()
 
+# customers, products, orders, order_lines = import_data(data)
+
 def index(request):
     template = 'index.html'
-    # customers, products, orders, order_lines = import_data(data)
     
+    total_products = Product.objects.count()
+    total_customers = Customer.objects.count()
+
     context = {
-        # 'customers': customers,
-        # 'products': products,
-        # 'orders': orders,
-        # 'order_lines': order_lines
+        'total_products': total_products,
+        'total_customers': total_customers,
     }
     return render(request, template, context)
 

@@ -1,15 +1,15 @@
 {% extends "base_generic.html" %}
 
 {% block title %}
-    <title>Customer List</title>
+    <title>Customer list</title>
 {% endblock %}
 
 {% block content %}
 <div class="container">
-    <div class="main-content">
-        <h1>Customer List</h1>
+    <div class="main-content">  
+        <h1>Danh sách khách hàng</h1>
 
-    <a href="{% url 'create_customer' %}" class="btn btn-primary">Add New Customer</a>
+    <a href="{% url 'create_customer' %}" class="btn btn-primary">Thêm khách hàng mới</a>
     <br><br>
 
     {% if customers %}
@@ -19,8 +19,8 @@
                 <th scope="col">Mã khách hàng</th>
                 <th scope="col">Tên khách hàng</th>
                 <th scope="col">Nhóm khách hàng</th>
-                <th scope="col">Detail</th>
-                <th scope="col">Delete</th>
+                <th scope="col">Chi tiết</th>
+                <th scope="col">Xóa</th>
             </tr>
         </thead>
         <tbody>
@@ -33,7 +33,7 @@
                     <a href="{% url 'customer_detail' pk=customer.pk %}" class="btn btn-info">Detail</a>
                 </td>
                 <td>
-                    <a href="{% url 'customer_delete' pk=customer.pk %}" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this customer?');">Delete</a>
+                    <a href="{% url 'customer_delete' pk=customer.pk %}" class="btn btn-danger" onclick="return confirm('Bạn có chắn chắn xóa khách hàng này? Không thể khôi phục được dữ liệu khách hàng');">Delete</a>
                 </td>
             </tr>
             {% empty %}

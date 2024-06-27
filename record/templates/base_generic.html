@@ -68,11 +68,13 @@
             <div class="col-sm-2">
                 {% block sidebar %}
                 <div class="sidebar-nav">
-                    <a href="{% url 'index' %}">Home (Data load)</a>
-                    <br><br>
-
+                    <br>
+                    <div >
+                        <a href="{% url 'index' %}" class="btn btn-secondary text-white" role="button">Trang chủ</a>
+                    </div>
+                    <br>
                     <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuLink" data-toggle="dropdown" aria-expanded="false">
                         Đơn hàng
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
