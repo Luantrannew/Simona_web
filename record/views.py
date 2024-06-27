@@ -416,7 +416,7 @@ def generate_product_code(cat_code):
         new_product_number = last_product_number + 1
     else:
         new_product_number = 1
-    return f'{cat_code}{new_product_number:04d}'
+    return f'{cat_code}{new_product_number:02d}'
 
 def create_product(request):
     if request.method == 'POST':

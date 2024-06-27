@@ -13,9 +13,8 @@
 </button>
 
 <br>
-<h1>Add new order</h1>
-<br>
-
+<h1>Đơn hàng mới</h1>
+<div id="responseMessage" style="display: none;"></div>
 <div class="container">
   <div class="main-content">
     <form id="order-form" method="post" action="{% url 'form' %}">
@@ -30,15 +29,11 @@
         <label for="customerSelect">Select Customer:</label>
         <select class="form-control" id="customerSelect" name="customer">
           {% for customer in customers %}
-            <option value="{{ customer.code }}">{{ customer.code }} - {{ customer.name }}</option>
+            <option value="{{ customer.code }}" {% if forloop.last %}selected{% endif %}>{{ customer.code }} - {{ customer.name }}</option>
           {% endfor %}
         </select>
       </div>
-  
-      <h2> Orderline </h2>
-      
       <div id="orderlines-container"></div>
-  
       <button type="button" id="add-orderline-btn" class="btn btn-success">Add New Orderline</button>
       <button type="submit" class="btn btn-danger">End Order</button> 
     </form>
@@ -67,10 +62,10 @@
         <!-- Form for adding a new customer -->
         <form id="addCustomerForm" method="post" action="{% url 'create_customer' %}">
           {% csrf_token %}
-          <div class="form-group">
+          {% comment %} <div class="form-group">
             <label for="customerCode">Customer Code:</label>
             <input type="text" class="form-control" id="customerCode" name="customerCode" >
-          </div>
+          </div> {% endcomment %}
           <div class="form-group">
             <label for="customerName">Customer Name:</label>
             <input type="text" class="form-control" id="customerName" name="customerName" required>
@@ -104,10 +99,10 @@
         <!-- Form for adding a new product -->
         <form id="addProductForm" method="post" action="{% url 'create_product' %}">
           {% csrf_token %}
-          <div class="form-group">
+          {% comment %} <div class="form-group">
             <label for="productCode">Product Code:</label>
             <input type="text" class="form-control" id="productCode" name="code" readonly>
-          </div>
+          </div> {% endcomment %}
           <div class="form-group">
             <label for="productName">Product Name:</label>
             <input type="text" class="form-control" id="productName" name="name" required>
@@ -139,13 +134,13 @@
     function orderlineTemplate(count) {
         return `
         <div class="orderline">
-            <h3>Orderline ${count}</h3>
+            <h3>sản phẩm ${count}</h3>
             <div class="form-group">
-                <label for="productSelect${count}">Select Product:</label>
+                <label for="productSelect${count}"></label>
                 <select class="form-control product-select" id="productSelect${count}" name="product${count}">
-                    {% for product in products %}
-                    <option value="{{ product.code }}" data-unit-price="{{ product.unit_price }}">{{ product.code }} - {{ product.name }}</option>
-                    {% endfor %}
+                  {% for product in products %}
+                    <option value="{{ product.code }}" data-unit-price="{{ product.unit_price }}" {% if forloop.last %}selected{% endif %}>{{ product.code }} - {{ product.name }}</option>
+                  {% endfor %}
                 </select>
             </div>
             <div class="form-group">
@@ -163,16 +158,23 @@
       var newOrderlineHtml = orderlineTemplate(orderlineCount);
       $('#orderlines-container').append(newOrderlineHtml);
       orderlineCount++;
+      calculateTotalAmount(); // Update total amount whenever a new orderline is added
     }
 
     function resetOrderlines() {
       $('#orderlines-container').empty();
       orderlineCount = 1;
       addOrderline(); // Re-initialize with one orderline
+      calculateTotalAmount(); // Reset total amount
     }
 
     // Update total amount when quantity changes
     $(document).on('input', '.quantity', function() {
+      calculateTotalAmount();
+    });
+
+    // Update total amount when product selection changes
+    $(document).on('change', '.product-select', function() {
       calculateTotalAmount();
     });
 
@@ -228,14 +230,17 @@
         `).show().fadeOut(2000);
         $('#' + formId)[0].reset();
         if (formId === 'addCustomerForm' && data.customer) {
-          var newOption = `<option value="${data.customer.code}">${data.customer.code} - ${data.customer.name}</option>`;
+          var newOption = `<option value="${data.customer.code}" selected>${data.customer.code} - ${data.customer.name}</option>`;
           $('#customerSelect').append(newOption);
           $('#addCustomerModal').modal('hide');
+          $('#customerSelect').val(data.customer.code);  // Chọn khách hàng vừa thêm
         }
         if (formId === 'addProductForm' && data.product) {
-          var newOption = `<option value="${data.product.code}" data-unit-price="${data.product.unit_price}">${data.product.code} - ${data.product.name}</option>`;
-          $('.product-select').append(newOption); // Update product selects in orderline
+          var newOption = `<option value="${data.product.code}" data-unit-price="${data.product.unit_price}" selected>${data.product.code} - ${data.product.name}</option>`;
+          $('.product-select').append(newOption); // Thêm sản phẩm mới và chọn sản phẩm đó
           $('#addProductModal').modal('hide');
+          $('.product-select').val(data.product.code);  // Chọn sản phẩm vừa thêm
+          calculateTotalAmount(); // Update total amount whenever a new product is added
         }
       });
     }
@@ -258,5 +263,6 @@
     });
   });
 </script>
+
 
 {% endblock %}

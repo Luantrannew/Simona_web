@@ -9,10 +9,6 @@
 <form id="customerForm" method="post" action="{% url 'create_customer' %}">
     {% csrf_token %}
     <div class="form-group">
-        <label for="customerCode">Customer Code:</label>
-        <input type="text" class="form-control" id="customerCode" name="customerCode" >
-    </div>
-    <div class="form-group">
         <label for="customerName">Customer Name:</label>
         <input type="text" class="form-control" id="customerName" name="customerName" required>
     </div>
