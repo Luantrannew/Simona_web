@@ -5,86 +5,6 @@ import pandas as pd
 import time
 
 
-data = r'C:\DE\data\Simona_data.csv'  # Đường dẫn tới tệp CSV
-
-def import_data(csv_data):
-    start_time = time.time()
-    df = pd.read_csv(csv_data)
-    
-    for idx, row in df.iterrows():
-        # Import CustomerSegments (if available)
-        if 'Mã PKKH' in df.columns and 'Mô tả Phân Khúc Khách hàng' in df.columns:
-            segment_code = row['Mã PKKH']
-            segment_name = row['Mô tả Phân Khúc Khách hàng']
-            segment, _ = CustomerSegments.objects.get_or_create(seg_code=segment_code, defaults={'seg_name': segment_name})
-        else:
-            segment = None
-        
-        # Import Category (if available)
-        if 'Mã nhóm hàng' in df.columns and 'Tên nhóm hàng' in df.columns:
-            cat_code = row['Mã nhóm hàng']
-            cat_name = row['Tên nhóm hàng']
-            category, _ = Category.objects.get_or_create(cat_code=cat_code, defaults={'cat_name': cat_name})
-        else:
-            category = None
-        
-        # Import Product
-        if 'Mã mặt hàng' in df.columns and 'Tên mặt hàng' in df.columns:
-            product_code = row['Mã mặt hàng']
-            product_name = row['Tên mặt hàng']
-            unit_price = row.get('Đơn giá', 0)  # Default to 0 if 'Đơn giá' is not available
-            
-            product_defaults = {
-                'name': product_name,
-                'unit_price': unit_price,
-                'cat': category  
-            }
-            
-            product, _ = Product.objects.get_or_create(code=product_code, defaults=product_defaults)
-        
-        # Import Customer
-        if 'Mã khách hàng' in df.columns and 'Tên khách hàng' in df.columns:
-            customer_code = row['Mã khách hàng']
-            customer_name = row['Tên khách hàng']
-            
-            customer_defaults = {
-                'name': customer_name,
-                'seg': segment  # Assign segment from models
-            }
-            
-            customer, _ = Customer.objects.get_or_create(code=customer_code, defaults=customer_defaults)
-        
-        # # Import Order
-        # if 'Mã đơn hàng' in df.columns and 'Thời gian tạo đơn' in df.columns:
-        #     customer = Customer.objects.filter(code=row['Mã khách hàng']).last()
-        #     order_defaults = {
-        #         'time': row['Thời gian tạo đơn'],
-        #         'customer': customer
-        #     }
-        #     order, _ = Order.objects.get_or_create(order_code=row['Mã đơn hàng'], defaults=order_defaults)
-        
-        # # Import OrderLine
-        # if 'Mã mặt hàng' in df.columns and 'SL' in df.columns:
-        #     product_code = row['Mã mặt hàng']
-        #     order_code = row['Mã đơn hàng']
-        #     product = Product.objects.filter(code=product_code).last()
-        #     order = Order.objects.filter(order_code=order_code).last()
-
-        #     if product and order:
-        #         order_line_defaults = {
-        #             'order': order,
-        #             'product': product,
-        #             'quantity': row['SL']
-        #         }
-        #         OrderLine.objects.get_or_create(order=order, product=product, defaults=order_line_defaults)
-
-    end_time = time.time()
-    print("Data loading time:", end_time - start_time, "seconds")
-
-    return Customer.objects.all(), Product.objects.all(), Order.objects.all(), OrderLine.objects.all()
-
-# customers, products, orders, order_lines = import_data(data)
-
 def index(request):
     template = 'index.html'
     
@@ -97,6 +17,75 @@ def index(request):
     }
     return render(request, template, context)
 
+#############################################
+from io import StringIO
+def upload_csv(request):
+    if request.method == 'POST':
+        start_time = time.time()
+        csv_file = request.FILES['csv_file']
+        csv_data = csv_file.read().decode('utf-8')
+        df = pd.read_csv(StringIO(csv_data))
+        
+        expected_header = ["Thời gian tạo đơn", "Mã đơn hàng", "Mã khách hàng", "Tên khách hàng", "Mã PKKH", "Mô tả Phân Khúc Khách hàng", "Mã nhóm hàng", "Tên nhóm hàng", "Mã mặt hàng", "Tên mặt hàng", "SL", "Đơn giá", "Thành tiền"]
+        
+        if list(df.columns) != expected_header:
+            return JsonResponse({"error": "Sai định dạng file CSV"}, status=400)
+        
+        # Tách dữ liệu theo từng model
+        df_categories = df[["Mã nhóm hàng", "Tên nhóm hàng"]].drop_duplicates(subset=["Mã nhóm hàng"])
+        df_segments = df[["Mã PKKH", "Mô tả Phân Khúc Khách hàng"]].drop_duplicates(subset=["Mã PKKH"])
+        df_customers = df[["Mã khách hàng", "Tên khách hàng", "Mã PKKH"]].drop_duplicates(subset=["Mã khách hàng"])
+        df_products = df[["Mã mặt hàng", "Tên mặt hàng", "Đơn giá", "Mã nhóm hàng"]].drop_duplicates(subset=["Mã mặt hàng"])
+        df_orders = df[["Mã đơn hàng", "Thời gian tạo đơn", "Mã khách hàng"]].drop_duplicates(subset=["Mã đơn hàng"])
+        df_order_lines = df[["Mã đơn hàng", "Mã mặt hàng", "SL"]]
+        
+        # Prepare data for bulk_create
+        categories = []
+        for _, row in df_categories.iterrows():
+            categories.append(Category(cat_code=row["Mã nhóm hàng"], cat_name=row["Tên nhóm hàng"]))
+        
+        Category.objects.bulk_create(categories, ignore_conflicts=True)
+
+        segments = []
+        for _, row in df_segments.iterrows():
+            segments.append(CustomerSegments(seg_code=row["Mã PKKH"], seg_name=row["Mô tả Phân Khúc Khách hàng"]))
+
+        CustomerSegments.objects.bulk_create(segments, ignore_conflicts=True)
+
+        customers = []
+        for _, row in df_customers.iterrows():
+            seg = CustomerSegments.objects.get(seg_code=row["Mã PKKH"])
+            customers.append(Customer(code=row["Mã khách hàng"], name=row["Tên khách hàng"], seg=seg))
+
+        Customer.objects.bulk_create(customers, ignore_conflicts=True)
+
+        products = []
+        for _, row in df_products.iterrows():
+            cat = Category.objects.get(cat_code=row["Mã nhóm hàng"])
+            products.append(Product(code=row["Mã mặt hàng"], name=row["Tên mặt hàng"], unit_price=row["Đơn giá"], cat=cat))
+
+        Product.objects.bulk_create(products, ignore_conflicts=True)
+
+        orders = []
+        for _, row in df_orders.iterrows():
+            customer = Customer.objects.get(code=row["Mã khách hàng"])
+            orders.append(Order(order_code=row["Mã đơn hàng"], time=row["Thời gian tạo đơn"], customer=customer))
+
+        Order.objects.bulk_create(orders, ignore_conflicts=True)
+
+        order_lines = []
+        for _, row in df_order_lines.iterrows():
+            order = Order.objects.get(order_code=row["Mã đơn hàng"])
+            product = Product.objects.get(code=row["Mã mặt hàng"])
+            order_lines.append(OrderLine(order=order, product=product, quantity=row["SL"]))
+
+        OrderLine.objects.bulk_create(order_lines, ignore_conflicts=True)
+
+        end_time = time.time()
+        print("Data loading time:", end_time - start_time, "seconds")
+        
+        return JsonResponse({"message": "Tệp CSV đã được tải lên và xử lý thành công"}, status=200)
+    return JsonResponse({"error": "Yêu cầu không hợp lệ"}, status=400)
 
 ##############################
 ######## list custumer ######
@@ -370,6 +359,15 @@ def form(request):
     }
     return render(request, template, context)
 
+def generate_customer_code():
+    last_customer = Customer.objects.order_by('-code').first()
+    if last_customer:
+        last_code = int(last_customer.code[3:])  # Extract numeric part
+        new_customer_number = last_code + 1
+    else:
+        new_customer_number = 1
+    return f'CUZ{new_customer_number:05d}'
+
 def create_customer(request):
     if request.method == 'POST':
         customer_code = request.POST.get('customerCode')
@@ -378,18 +376,8 @@ def create_customer(request):
 
         segment = CustomerSegments.objects.get(seg_code=seg_code)
 
-        # Generate customer code if not provided
-        if not customer_code:
-            last_customer = Customer.objects.order_by('-code').first()
-            if last_customer:
-                last_code = int(last_customer.code[3:])  # Extract numeric part
-                new_customer_number = last_code + 1
-            else:
-                new_customer_number = 1
-            customer_code = f'CUZ{new_customer_number:05d}'
-
         customer = Customer.objects.create(
-            code=customer_code,
+            code=generate_customer_code(),
             name=customer_name,
             seg=segment
         )

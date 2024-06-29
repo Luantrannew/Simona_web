@@ -1,38 +1,69 @@
 {% extends "base_generic.html" %}
 
 {% block content %}
-    <h1 class="text-center my-4">SIMONA SHOP</h1>
+<h1 class="text-center my-4">Web bán hàng Simona</h1>
 
-    <p class="text-center">Web bán hàng Simona</p>
-
-    <div class="row text-center">
-        <div class="col-md-4">
-            <div class="card border-info mb-3">
-                <div class="card-header">Truy cập nhanh</div>
-                <div class="card-body">
-                    <ul class="list-unstyled">
-                        <li><a href="{% url 'order_from_customer' %}" class="btn btn-primary btn-block mb-2">Xem đơn hàng</a></li>
-                        <li><a href="{% url 'product_list' %}" class="btn btn-secondary btn-block mb-2">Xem sản phẩm</a></li>
-                        <li><a href="{% url 'customer_list' %}" class="btn btn-success btn-block">Xem khách hàng</a></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-primary mb-3">
-                <div class="card-header">Số lượng sản phẩm</div>
-                <div class="card-body">
-                    <p class="card-text">{{ total_products }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-primary mb-3">
-                <div class="card-header">Số lượng khách hàng</div>
-                <div class="card-body">
-                    <p class="card-text">{{ total_customers }}</p>
-                </div>
+<div class="row text-center">
+    <div class="col-md-4">
+        <div class="card border-info mb-3">
+            <div class="card-header">Truy cập nhanh</div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><a href="{% url 'order_from_customer' %}" class="btn btn-primary btn-block mb-2">Xem đơn hàng</a></li>
+                    <li><a href="{% url 'product_list' %}" class="btn btn-secondary btn-block mb-2">Xem sản phẩm</a></li>
+                    <li><a href="{% url 'customer_list' %}" class="btn btn-success btn-block">Xem khách hàng</a></li>
+                </ul>
             </div>
         </div>
     </div>
+    <div class="col-md-4">
+        <div class="card border-primary mb-3">
+            <div class="card-header">Số lượng sản phẩm</div>
+            <div class="card-body">
+                <p class="card-text">{{ total_products }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-primary mb-3">
+            <div class="card-header">Số lượng khách hàng</div>
+            <div class="card-body">
+                <p class="card-text">{{ total_customers }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="dropArea" class="drag-drop-area" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);">
+    Kéo và thả tệp CSV vào đây
+</div>
+
+<script>
+    function dragOverHandler(event) {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "copy";
+    }
+
+    function dropHandler(event) {
+        event.preventDefault();
+        const file = event.dataTransfer.files[0];
+        const formData = new FormData();
+        formData.append('csv_file', file);
+
+        fetch('{% url "upload_csv" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            alert("Tệp CSV đã được tải lên và xử lý thành công");
+        })
+        .catch(error => console.error('Error:', error));
+    }
+</script>
+
 {% endblock %}

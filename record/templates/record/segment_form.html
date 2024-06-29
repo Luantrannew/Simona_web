@@ -2,22 +2,23 @@
 
 {% block content %}
 <div class="container">
-    <br>
-    <h2>Tạo nhóm khách hàng mới</h2>
-    <br>
-    <form id="segmentForm">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="segCode">Mã nhóm hàng:</label>
-            <input type="text" class="form-control" id="segCode" name="seg_code" required>
-        </div>
-        <div class="form-group">
-            <label for="segName">Tên nhóm hàng:</label>
-            <input type="text" class="form-control" id="segName" name="seg_name" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Lưu</button>
-    </form>
-    <br>
+    <div class= "main-content">
+        <h2>Tạo nhóm khách hàng mới</h2>
+        <br>
+        <form id="segmentForm">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="segCode">Mã nhóm khách hàng:</label>
+                <input type="text" class="form-control" id="segCode" name="seg_code" required>
+            </div>
+            <div class="form-group">
+                <label for="segName">Tên nhóm khách hàng:</label>
+                <input type="text" class="form-control" id="segName" name="seg_name" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Lưu</button>
+        </form>
+        <br>
+    </div>
     <div id="responseMessage" style="display: none;"></div>
 </div>
 
@@ -39,13 +40,11 @@ document.getElementById("segmentForm").addEventListener("submit", function(event
     .then(data => {
         // Hiển thị thông báo thành công
         document.getElementById("responseMessage").style.display = "block";
-        document.getElementById("responseMessage").innerHTML = `
+        $('#responseMessage').html(`
             <div class="alert alert-success" role="alert">
                 ${data.message}
             </div>
-            <p><strong>Mã nhóm khách hàng:</strong> ${data.segment_code}</p>
-            <p><strong>Tên nhóm khách hàng:</strong> ${data.segment_name}</p>
-        `;
+            `).show().fadeOut(10000);
         document.getElementById("segmentForm").reset();
     });
 });
