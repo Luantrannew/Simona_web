@@ -37,6 +37,11 @@
 <div id="dropArea" class="drag-drop-area" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);">
     Kéo và thả tệp CSV vào đây
 </div>
+<div id="loadingSpinner" class="text-center mt-4" style="display: none;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="sr-only">Loading...</span>
+    </div>
+</div>
 
 <script>
     function dragOverHandler(event) {
@@ -46,6 +51,10 @@
 
     function dropHandler(event) {
         event.preventDefault();
+
+        // Hiển thị biểu tượng loading
+        document.getElementById('loadingSpinner').style.display = 'block';
+
         const file = event.dataTransfer.files[0];
         const formData = new FormData();
         formData.append('csv_file', file);
@@ -61,8 +70,15 @@
         .then(data => {
             console.log(data);
             alert("Tệp CSV đã được tải lên và xử lý thành công");
+
+            // Ẩn biểu tượng loading sau khi hoàn thành
+            document.getElementById('loadingSpinner').style.display = 'none';
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => {
+            console.error('Error:', error);
+            // Xử lý lỗi và ẩn biểu tượng loading
+            document.getElementById('loadingSpinner').style.display = 'none';
+        });
     }
 </script>
 
