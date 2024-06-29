@@ -2,17 +2,21 @@
 
 This is a Django-based Order Management System that manages customers, products, orders, and order lines. The project includes functionality to import data from a CSV file and save it into a PostgreSQL database.
 
-![image](https://github.com/Luantrannew/Simona_web/assets/62492632/7c6d7685-2c3b-42b3-b4d6-d99ccbc6e560)
-![image](https://github.com/Luantrannew/Simona_web/assets/62492632/151abb15-07b2-4668-bd0e-98c0e215e335)
-
-
-
 ## Features
 
 - Save the imported data into a PostgreSQL database.
 - Display lists of customers, products, and order lines.
 
+## Screenshots
 
+![Dashboard](https://github.com/Luantrannew/Simona_web/assets/62492632/27107d9c-13be-4f8d-8693-007245ed7104)
+*Dashboard*
+
+![Customers List](https://github.com/Luantrannew/Simona_web/assets/62492632/7c6d7685-2c3b-42b3-b4d6-d99ccbc6e560)
+*Modal*
+
+![Order Lines](https://github.com/Luantrannew/Simona_web/assets/62492632/151abb15-07b2-4668-bd0e-98c0e215e335)
+*Order*
 
 ## Installation
 
@@ -56,5 +60,3 @@ This is a Django-based Order Management System that manages customers, products,
     ```
 
 2. Open your web browser and go to `http://127.0.0.1:8000` to access the application.
-
-
