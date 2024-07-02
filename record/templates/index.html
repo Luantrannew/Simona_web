@@ -43,6 +43,34 @@
     </div>
 </div>
 
+<!-- Button "Hướng dẫn chi tiết" -->
+<div class="text-center mt-4">
+    <button class="btn btn-info" onclick="showGuide()">Hướng dẫn chi tiết</button>
+</div>
+
+<!-- Modal for CSV format guide -->
+<div id="guideModal" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Hướng dẫn định dạng CSV</h5>
+                <button type="button" class="close" onclick="closeGuide()" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Bảng CSV nộp vào phải có định dạng sau đây:</p>
+                <pre>
+                    Thời gian tạo đơn, Mã đơn hàng, Mã khách hàng, Tên khách hàng, Mã PKKH, Mô tả Phân Khúc Khách hàng, Mã nhóm hàng, Tên nhóm hàng, Mã mặt hàng, Tên mặt hàng, SL, Đơn giá, Thành tiền
+                </pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeGuide()">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     function dragOverHandler(event) {
         event.preventDefault();
@@ -79,6 +107,14 @@
             // Xử lý lỗi và ẩn biểu tượng loading
             document.getElementById('loadingSpinner').style.display = 'none';
         });
+    }
+
+    function showGuide() {
+        document.getElementById('guideModal').style.display = 'block';
+    }
+
+    function closeGuide() {
+        document.getElementById('guideModal').style.display = 'none';
     }
 </script>
 

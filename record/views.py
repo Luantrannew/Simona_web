@@ -25,60 +25,57 @@ def upload_csv(request):
         csv_file = request.FILES['csv_file']
         csv_data = csv_file.read().decode('utf-8')
         df = pd.read_csv(StringIO(csv_data))
-        
-        expected_header = ["Thời gian tạo đơn", "Mã đơn hàng", "Mã khách hàng", "Tên khách hàng", "Mã PKKH", "Mô tả Phân Khúc Khách hàng", "Mã nhóm hàng", "Tên nhóm hàng", "Mã mặt hàng", "Tên mặt hàng", "SL", "Đơn giá", "Thành tiền"]
+
+        expected_header = ["Thời gian tạo đơn", "Mã đơn hàng", 
+                           "Mã khách hàng", "Tên khách hàng", 
+                           "Mã PKKH", "Mô tả Phân Khúc Khách hàng", 
+                           "Mã nhóm hàng", "Tên nhóm hàng", 
+                           "Mã mặt hàng", "Tên mặt hàng", 
+                           "SL", "Đơn giá", 
+                           "Thành tiền"]
         
         if list(df.columns) != expected_header:
             return JsonResponse({"error": "Sai định dạng file CSV"}, status=400)
         
-        # Tách dữ liệu theo từng model
         df_categories = df[["Mã nhóm hàng", "Tên nhóm hàng"]].drop_duplicates(subset=["Mã nhóm hàng"])
         df_segments = df[["Mã PKKH", "Mô tả Phân Khúc Khách hàng"]].drop_duplicates(subset=["Mã PKKH"])
         df_customers = df[["Mã khách hàng", "Tên khách hàng", "Mã PKKH"]].drop_duplicates(subset=["Mã khách hàng"])
         df_products = df[["Mã mặt hàng", "Tên mặt hàng", "Đơn giá", "Mã nhóm hàng"]].drop_duplicates(subset=["Mã mặt hàng"])
         df_orders = df[["Mã đơn hàng", "Thời gian tạo đơn", "Mã khách hàng"]].drop_duplicates(subset=["Mã đơn hàng"])
         df_order_lines = df[["Mã đơn hàng", "Mã mặt hàng", "SL"]]
-        
-        # Prepare data for bulk_create
-        categories = []
-        for _, row in df_categories.iterrows():
-            categories.append(Category(cat_code=row["Mã nhóm hàng"], cat_name=row["Tên nhóm hàng"]))
-        
+
+
+
+        categories = [Category(cat_code=row["Mã nhóm hàng"], cat_name=row["Tên nhóm hàng"]) for _, row in df_categories.iterrows()]
         Category.objects.bulk_create(categories, ignore_conflicts=True)
 
-        segments = []
-        for _, row in df_segments.iterrows():
-            segments.append(CustomerSegments(seg_code=row["Mã PKKH"], seg_name=row["Mô tả Phân Khúc Khách hàng"]))
 
+
+        segments = [CustomerSegments(seg_code=row["Mã PKKH"], seg_name=row["Mô tả Phân Khúc Khách hàng"]) for _, row in df_segments.iterrows()]
         CustomerSegments.objects.bulk_create(segments, ignore_conflicts=True)
 
-        customers = []
-        for _, row in df_customers.iterrows():
-            seg = CustomerSegments.objects.get(seg_code=row["Mã PKKH"])
-            customers.append(Customer(code=row["Mã khách hàng"], name=row["Tên khách hàng"], seg=seg))
 
+
+        # Pre-fetch all segments and categories
+        segment_map = {seg.seg_code: seg for seg in CustomerSegments.objects.all()}
+        category_map = {cat.cat_code: cat for cat in Category.objects.all()}
+        # Pre-fetch all customers and products
+        customer_map = {cust.code: cust for cust in Customer.objects.all()}
+        product_map = {prod.code: prod for prod in Product.objects.all()}
+        # Pre-fetch all orders
+        order_map = {ord.order_code: ord for ord in Order.objects.all()}
+
+
+        customers = [Customer(code=row["Mã khách hàng"], name=row["Tên khách hàng"], seg=segment_map[row["Mã PKKH"]]) for _, row in df_customers.iterrows()]
         Customer.objects.bulk_create(customers, ignore_conflicts=True)
 
-        products = []
-        for _, row in df_products.iterrows():
-            cat = Category.objects.get(cat_code=row["Mã nhóm hàng"])
-            products.append(Product(code=row["Mã mặt hàng"], name=row["Tên mặt hàng"], unit_price=row["Đơn giá"], cat=cat))
-
+        products = [Product(code=row["Mã mặt hàng"], name=row["Tên mặt hàng"], unit_price=row["Đơn giá"], cat=category_map[row["Mã nhóm hàng"]]) for _, row in df_products.iterrows()]
         Product.objects.bulk_create(products, ignore_conflicts=True)
 
-        orders = []
-        for _, row in df_orders.iterrows():
-            customer = Customer.objects.get(code=row["Mã khách hàng"])
-            orders.append(Order(order_code=row["Mã đơn hàng"], time=row["Thời gian tạo đơn"], customer=customer))
-
+        orders = [Order(order_code=row["Mã đơn hàng"], time=row["Thời gian tạo đơn"], customer=customer_map[row["Mã khách hàng"]]) for _, row in df_orders.iterrows()]
         Order.objects.bulk_create(orders, ignore_conflicts=True)
 
-        order_lines = []
-        for _, row in df_order_lines.iterrows():
-            order = Order.objects.get(order_code=row["Mã đơn hàng"])
-            product = Product.objects.get(code=row["Mã mặt hàng"])
-            order_lines.append(OrderLine(order=order, product=product, quantity=row["SL"]))
-
+        order_lines = [OrderLine(order=order_map[row["Mã đơn hàng"]], product=product_map[row["Mã mặt hàng"]], quantity=row["SL"]) for _, row in df_order_lines.iterrows()]
         OrderLine.objects.bulk_create(order_lines, ignore_conflicts=True)
 
         end_time = time.time()
@@ -208,61 +205,6 @@ def order_delete(request, pk):
     order = Order.objects.filter(pk=pk).last()
     order.delete()
     return redirect('order_from_customer')
-
-####################################
-## Form làm từ Django###############
-'''
-from .forms import OrderForm, OrderLineForm, CustomerForm, ProductForm, OrderLineFormSet
-from django.forms import formset_factory
-
-def create_order(request):
-  template = 'form.html'
-
-  print(request.POST)
-  print(request.POST.get('order_code'))
-  print(request.POST.get('order_code'))
-
-
-  order_form = OrderForm(request.POST or None)
-
-  # Dynamically create an order line formset instance
-  OrderLineFormSet = formset_factory(OrderLineForm)
-  orderline_formset = OrderLineFormSet(request.POST or None, prefix='orderline')
-
-  if request.method == 'POST':
-      if order_form.is_valid() and orderline_formset.is_valid():
-          order = order_form.save()
-
-          for form in orderline_formset:
-              orderline = form.save(commit=False)
-              orderline.order = order
-
-              # Retrieve product name from form data
-              product_name = form.cleaned_data.get('product_name')
-
-              if product_name:
-                  product = Product.objects.filter(name=product_name).first()
-                  if product:
-                      orderline.product = product
-
-              orderline.save()
-
-          # Check which button was clicked
-          if request.POST.get("submit") == "finish":
-              return redirect('order_success')
-          # else:
-          #     # Redirect to add_order_line view
-          #     return redirect('add_order_line')
-  
-  products = Product.objects.all()
-  context = {
-      'order_form': order_form,
-      'orderline_formset': orderline_formset,
-      'products' : products
-  }
-  return render(request, template, context)
-
-'''
 
 #################################################
 ####### form điền thông tin về order ############
@@ -443,7 +385,7 @@ def create_product(request):
 ################################################
 def segment_list(request):
   template = 'record/segment_list.html'
-  segments = CustomerSegments.objects.all()  # Lấy tất cả các nhóm khách hàng
+  segments = CustomerSegments.objects.all()  
 
   context = {
       'segments': segments,
