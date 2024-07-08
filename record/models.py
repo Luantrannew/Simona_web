@@ -34,7 +34,7 @@ class Customer(models.Model):
 class CustomerSegments(models.Model):
     seg_code = models.CharField(max_length=50, primary_key=True)
     seg_name = models.CharField(max_length=255)
-
+    
     def __str__(self):
         return self.seg_code
 

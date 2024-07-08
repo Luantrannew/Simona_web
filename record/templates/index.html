@@ -4,18 +4,7 @@
 <h1 class="text-center my-4">Web bán hàng Simona</h1>
 
 <div class="row text-center">
-    <div class="col-md-4">
-        <div class="card border-info mb-3">
-            <div class="card-header">Truy cập nhanh</div>
-            <div class="card-body">
-                <ul class="list-unstyled">
-                    <li><a href="{% url 'order_from_customer' %}" class="btn btn-primary btn-block mb-2">Xem đơn hàng</a></li>
-                    <li><a href="{% url 'product_list' %}" class="btn btn-secondary btn-block mb-2">Xem sản phẩm</a></li>
-                    <li><a href="{% url 'customer_list' %}" class="btn btn-success btn-block">Xem khách hàng</a></li>
-                </ul>
-            </div>
-        </div>
-    </div>
+   
     <div class="col-md-4">
         <div class="card border-primary mb-3">
             <div class="card-header">Số lượng sản phẩm</div>
@@ -32,20 +21,81 @@
             </div>
         </div>
     </div>
-</div>
-
-<div id="dropArea" class="drag-drop-area" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);">
-    Kéo và thả tệp CSV vào đây
-</div>
-<div id="loadingSpinner" class="text-center mt-4" style="display: none;">
-    <div class="spinner-border text-primary" role="status">
-        <span class="sr-only">Loading...</span>
+    <div class="col-md-4"> 
+        <div class="card border-primary mb-3">
+            <div class="card-header">Số lượng đơn hàng</div>
+            <div class="card-body">
+                <p class="card-text">{{ total_orders }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-info mb-3">
+            <div class="card-header">Truy cập nhanh</div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><a href="{% url 'order_from_customer' %}" class="btn btn-primary btn-block mb-2">Xem đơn hàng</a></li>
+                    <li><a href="{% url 'product_list' %}" class="btn btn-primary btn-block mb-2">Xem sản phẩm</a></li>
+                    <li><a href="{% url 'customer_list' %}" class="btn btn-primary btn-block">Xem khách hàng</a></li>
+                </ul>
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- Button "Hướng dẫn chi tiết" -->
-<div class="text-center mt-4">
-    <button class="btn btn-info" onclick="showGuide()">Hướng dẫn chi tiết</button>
+
+
+<!-- Button để mở modal -->
+<div class="row text-center mt-4">
+
+
+
+    <div class="col-md-4">
+        <button class="btn btn-success btn-block" onclick="showDragDropModal()">Tải lên CSV</button>
+    </div>
+
+
+    <div class="col-md-4">
+        <button class="btn btn-info btn-block" onclick="showGuide()">Hướng dẫn chi tiết</button>
+    </div>
+
+    <div class="col-md-4">
+        <form method="post" action="{% url 'delete_all_data' %}" onsubmit="return confirm('Bạn có chắc chắn muốn xóa toàn bộ dữ liệu?');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger btn-block">Xóa toàn bộ dữ liệu</button>
+        </form>
+    </div>
+
+
+</div>
+
+<div id="dragDropModal" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tải lên CSV</h5>
+                <button type="button" class="close" onclick="closeDragDropModal()" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="dropArea" class="drag-drop-area" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);">
+                    Kéo và thả tệp CSV vào đây
+                </div>
+                <div class="text-center mt-4">
+                    <input type="file" id="fileInput" accept=".csv" onchange="fileInputHandler(event)" />
+                </div>
+                <div id="loadingSpinner" class="text-center mt-4" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeDragDropModal()">Đóng</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Modal for CSV format guide -->
@@ -79,11 +129,17 @@
 
     function dropHandler(event) {
         event.preventDefault();
+        handleFileUpload(event.dataTransfer.files[0]);
+    }
 
-        // Hiển thị biểu tượng loading
+    function fileInputHandler(event) {
+        const file = event.target.files[0];
+        handleFileUpload(file);
+    }
+
+    function handleFileUpload(file) {
         document.getElementById('loadingSpinner').style.display = 'block';
 
-        const file = event.dataTransfer.files[0];
         const formData = new FormData();
         formData.append('csv_file', file);
 
@@ -98,15 +154,20 @@
         .then(data => {
             console.log(data);
             alert("Tệp CSV đã được tải lên và xử lý thành công");
-
-            // Ẩn biểu tượng loading sau khi hoàn thành
             document.getElementById('loadingSpinner').style.display = 'none';
         })
         .catch(error => {
             console.error('Error:', error);
-            // Xử lý lỗi và ẩn biểu tượng loading
             document.getElementById('loadingSpinner').style.display = 'none';
         });
+    }
+
+    function showDragDropModal() {
+        document.getElementById('dragDropModal').style.display = 'block';
+    }
+
+    function closeDragDropModal() {
+        document.getElementById('dragDropModal').style.display = 'none';
     }
 
     function showGuide() {

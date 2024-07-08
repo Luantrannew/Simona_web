@@ -6,6 +6,7 @@ from . import views
 urlpatterns = [
     path('', views.index, name='index'),
     path('upload_csv/', views.upload_csv, name='upload_csv'),
+    path('delete_all_data/', views.delete_all_data, name='delete_all_data'),
 
     path('customer/', views.customer_list, name='customer_list'),
     path('customer/delete/<str:pk>/', views.customer_delete, name='customer_delete'),

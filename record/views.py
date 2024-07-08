@@ -10,15 +10,32 @@ def index(request):
     
     total_products = Product.objects.count()
     total_customers = Customer.objects.count()
+    total_orders = Order.objects.count()
 
     context = {
         'total_products': total_products,
         'total_customers': total_customers,
+        'total_orders': total_orders,
     }
     return render(request, template, context)
 
-#############################################
+def delete_all_data(request):
+    if request.method == 'POST':
+        Customer.objects.all().delete()
+        Product.objects.all().delete()
+        Order.objects.all().delete()
+        OrderLine.objects.all().delete()
+        CustomerSegments.objects.all().delete()
+        Category.objects.all().delete()
+
+        return redirect('index')
+
+    return render(request, 'index.html')
+
+# #############################################
+# #############################################
 from io import StringIO
+
 def upload_csv(request):
     if request.method == 'POST':
         start_time = time.time()
@@ -37,47 +54,54 @@ def upload_csv(request):
         if list(df.columns) != expected_header:
             return JsonResponse({"error": "Sai định dạng file CSV"}, status=400)
         
+        # Step 1: Insert data into Category and CustomerSegments
         df_categories = df[["Mã nhóm hàng", "Tên nhóm hàng"]].drop_duplicates(subset=["Mã nhóm hàng"])
         df_segments = df[["Mã PKKH", "Mô tả Phân Khúc Khách hàng"]].drop_duplicates(subset=["Mã PKKH"])
-        df_customers = df[["Mã khách hàng", "Tên khách hàng", "Mã PKKH"]].drop_duplicates(subset=["Mã khách hàng"])
-        df_products = df[["Mã mặt hàng", "Tên mặt hàng", "Đơn giá", "Mã nhóm hàng"]].drop_duplicates(subset=["Mã mặt hàng"])
-        df_orders = df[["Mã đơn hàng", "Thời gian tạo đơn", "Mã khách hàng"]].drop_duplicates(subset=["Mã đơn hàng"])
-        df_order_lines = df[["Mã đơn hàng", "Mã mặt hàng", "SL"]]
-
-
-
+        
         categories = [Category(cat_code=row["Mã nhóm hàng"], cat_name=row["Tên nhóm hàng"]) for _, row in df_categories.iterrows()]
         Category.objects.bulk_create(categories, ignore_conflicts=True)
-
-
-
+        
         segments = [CustomerSegments(seg_code=row["Mã PKKH"], seg_name=row["Mô tả Phân Khúc Khách hàng"]) for _, row in df_segments.iterrows()]
         CustomerSegments.objects.bulk_create(segments, ignore_conflicts=True)
-
-
-
-        # Pre-fetch all segments and categories
+        
+        # Step 2: Insert data into Customer and Product
         segment_map = {seg.seg_code: seg for seg in CustomerSegments.objects.all()}
         category_map = {cat.cat_code: cat for cat in Category.objects.all()}
-        # Pre-fetch all customers and products
-        customer_map = {cust.code: cust for cust in Customer.objects.all()}
-        product_map = {prod.code: prod for prod in Product.objects.all()}
-        # Pre-fetch all orders
-        order_map = {ord.order_code: ord for ord in Order.objects.all()}
-
-
+        
+        df_customers = df[["Mã khách hàng", "Tên khách hàng", "Mã PKKH"]].drop_duplicates(subset=["Mã khách hàng"])
+        df_products = df[["Mã mặt hàng", "Tên mặt hàng", "Đơn giá", "Mã nhóm hàng"]].drop_duplicates(subset=["Mã mặt hàng"])
+        
         customers = [Customer(code=row["Mã khách hàng"], name=row["Tên khách hàng"], seg=segment_map[row["Mã PKKH"]]) for _, row in df_customers.iterrows()]
         Customer.objects.bulk_create(customers, ignore_conflicts=True)
-
+        
         products = [Product(code=row["Mã mặt hàng"], name=row["Tên mặt hàng"], unit_price=row["Đơn giá"], cat=category_map[row["Mã nhóm hàng"]]) for _, row in df_products.iterrows()]
         Product.objects.bulk_create(products, ignore_conflicts=True)
-
-        orders = [Order(order_code=row["Mã đơn hàng"], time=row["Thời gian tạo đơn"], customer=customer_map[row["Mã khách hàng"]]) for _, row in df_orders.iterrows()]
+        
+        # Step 3: Pre-fetch all customers and products after they have been inserted
+        customer_map = {cust.code: cust for cust in Customer.objects.all()}
+        product_map = {prod.code: prod for prod in Product.objects.all()}
+        
+        # Step 4: Insert data into Order and OrderLine
+        df_orders = df[["Mã đơn hàng", "Thời gian tạo đơn", "Mã khách hàng"]].drop_duplicates(subset=["Mã đơn hàng"])
+        df_order_lines = df[["Mã đơn hàng", "Mã mặt hàng", "SL"]]
+        
+        orders = [
+            Order(order_code=row["Mã đơn hàng"], 
+                  time=row["Thời gian tạo đơn"], 
+                  customer=customer_map[row["Mã khách hàng"]]) for _, row in df_orders.iterrows()
+        ]
         Order.objects.bulk_create(orders, ignore_conflicts=True)
-
-        order_lines = [OrderLine(order=order_map[row["Mã đơn hàng"]], product=product_map[row["Mã mặt hàng"]], quantity=row["SL"]) for _, row in df_order_lines.iterrows()]
+        
+        # Pre-fetch all orders after they have been inserted
+        order_map = {ord.order_code: ord for ord in Order.objects.all()}
+        
+        order_lines = [
+            OrderLine(order=order_map[row["Mã đơn hàng"]], 
+                      product=product_map[row["Mã mặt hàng"]], 
+                      quantity=row["SL"]) for _, row in df_order_lines.iterrows()
+        ]
         OrderLine.objects.bulk_create(order_lines, ignore_conflicts=True)
-
+        
         end_time = time.time()
         print("Data loading time:", end_time - start_time, "seconds")
         
