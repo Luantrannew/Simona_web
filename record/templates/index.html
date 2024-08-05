@@ -1,41 +1,61 @@
 {% extends "base_generic.html" %}
 
 {% block content %}
-<h1 class="text-center my-4">Web bán hàng Simona</h1>
+<h1 class="text-center" style="margin-top: 20px; margin-bottom: 20px;">Web bán hàng Simona</h1>
 
 <div class="row text-center">
-   
     <div class="col-md-4">
-        <div class="card border-primary mb-3">
-            <div class="card-header">Số lượng sản phẩm</div>
-            <div class="card-body">
-                <p class="card-text">{{ total_products }}</p>
+        <div class="panel panel-primary">
+            <div class="panel-heading">Số lượng sản phẩm</div>
+            <div class="panel-body">
+                <p>{{ total_products }}</p>
             </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card border-primary mb-3">
-            <div class="card-header">Số lượng khách hàng</div>
-            <div class="card-body">
-                <p class="card-text">{{ total_customers }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4"> 
-        <div class="card border-primary mb-3">
-            <div class="card-header">Số lượng đơn hàng</div>
-            <div class="card-body">
-                <p class="card-text">{{ total_orders }}</p>
+        <div class="panel panel-primary">
+            <div class="panel-heading">Số lượng khách hàng</div>
+            <div class="panel-body">
+                <p>{{ total_customers }}</p>
             </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card border-info mb-3">
-            <div class="card-header">Truy cập nhanh</div>
-            <div class="card-body">
+        <div class="panel panel-primary">
+            <div class="panel-heading">Số lượng đơn hàng</div>
+            <div class="panel-body">
+                <p>{{ total_orders }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Button để mở modal -->
+<div class="row text-center" style="margin-top: 20px;">
+    <div class="col-md-4">
+        <button class="btn btn-info btn-block" onclick="showGuide()">Hướng dẫn chi tiết</button>
+    </div>
+    <div class="col-md-4">
+        <button class="btn btn-success btn-block" onclick="showDragDropModal()">Tải lên CSV</button>
+    </div>
+    <div class="col-md-4">
+        <form method="post" action="{% url 'delete_all_data' %}" onsubmit="return confirm('Bạn có chắc chắn muốn xóa toàn bộ dữ liệu?');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger btn-block">Xóa toàn bộ dữ liệu</button>
+        </form>
+    </div>
+</div>
+
+
+    <br><br><br>
+
+    <div class="col-md-4">
+        <div class="panel panel-info">
+            <div class="panel-heading">Truy cập nhanh</div>
+            <div class="panel-body">
                 <ul class="list-unstyled">
-                    <li><a href="{% url 'order_from_customer' %}" class="btn btn-primary btn-block mb-2">Xem đơn hàng</a></li>
-                    <li><a href="{% url 'product_list' %}" class="btn btn-primary btn-block mb-2">Xem sản phẩm</a></li>
+                    <li><a href="{% url 'order_from_customer' %}" class="btn btn-primary btn-block" style="margin-bottom: 10px;">Xem đơn hàng</a></li>
+                    <li><a href="{% url 'product_list' %}" class="btn btn-primary btn-block" style="margin-bottom: 10px;">Xem sản phẩm</a></li>
                     <li><a href="{% url 'customer_list' %}" class="btn btn-primary btn-block">Xem khách hàng</a></li>
                 </ul>
             </div>
@@ -45,77 +65,48 @@
 
 
 
-<!-- Button để mở modal -->
-<div class="row text-center mt-4">
-
-
-
-    <div class="col-md-4">
-        <button class="btn btn-success btn-block" onclick="showDragDropModal()">Tải lên CSV</button>
-    </div>
-
-
-    <div class="col-md-4">
-        <button class="btn btn-info btn-block" onclick="showGuide()">Hướng dẫn chi tiết</button>
-    </div>
-
-    <div class="col-md-4">
-        <form method="post" action="{% url 'delete_all_data' %}" onsubmit="return confirm('Bạn có chắc chắn muốn xóa toàn bộ dữ liệu?');">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-danger btn-block">Xóa toàn bộ dữ liệu</button>
-        </form>
-    </div>
-
-
-</div>
-
-<div id="dragDropModal" class="modal" tabindex="-1" role="dialog">
+<div id="dragDropModal" class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Tải lên CSV</h5>
-                <button type="button" class="close" onclick="closeDragDropModal()" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="close" onclick="closeDragDropModal()" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Tải lên CSV</h4>
             </div>
             <div class="modal-body">
                 <div id="dropArea" class="drag-drop-area" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);">
                     Kéo và thả tệp CSV vào đây
                 </div>
-                <div class="text-center mt-4">
+                <div class="text-center" style="margin-top: 20px;">
                     <input type="file" id="fileInput" accept=".csv" onchange="fileInputHandler(event)" />
                 </div>
-                <div id="loadingSpinner" class="text-center mt-4" style="display: none;">
-                    <div class="spinner-border text-primary" role="status">
+                <div id="loadingSpinner" class="text-center" style="margin-top: 20px; display: none;">
+                    <div class="spinner" role="status">
                         <span class="sr-only">Loading...</span>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeDragDropModal()">Đóng</button>
+                <button type="button" class="btn btn-default" onclick="closeDragDropModal()">Đóng</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal for CSV format guide -->
-<div id="guideModal" class="modal" tabindex="-1" role="dialog">
+<div id="guideModal" class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Hướng dẫn định dạng CSV</h5>
-                <button type="button" class="close" onclick="closeGuide()" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="close" onclick="closeGuide()" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Hướng dẫn định dạng CSV</h4>
             </div>
             <div class="modal-body">
                 <p>Bảng CSV nộp vào phải có định dạng sau đây:</p>
                 <pre>
-                    Thời gian tạo đơn, Mã đơn hàng, Mã khách hàng, Tên khách hàng, Mã PKKH, Mô tả Phân Khúc Khách hàng, Mã nhóm hàng, Tên nhóm hàng, Mã mặt hàng, Tên mặt hàng, SL, Đơn giá, Thành tiền
+Thời gian tạo đơn, Mã đơn hàng, Mã khách hàng, Tên khách hàng, Mã PKKH, Mô tả Phân Khúc Khách hàng, Mã nhóm hàng, Tên nhóm hàng, Mã mặt hàng, Tên mặt hàng, SL, Đơn giá, Thành tiền
                 </pre>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeGuide()">Đóng</button>
+                <button type="button" class="btn btn-default" onclick="closeGuide()">Đóng</button>
             </div>
         </div>
     </div>
@@ -163,19 +154,19 @@
     }
 
     function showDragDropModal() {
-        document.getElementById('dragDropModal').style.display = 'block';
+        $('#dragDropModal').modal('show');
     }
 
     function closeDragDropModal() {
-        document.getElementById('dragDropModal').style.display = 'none';
+        $('#dragDropModal').modal('hide');
     }
 
     function showGuide() {
-        document.getElementById('guideModal').style.display = 'block';
+        $('#guideModal').modal('show');
     }
 
     function closeGuide() {
-        document.getElementById('guideModal').style.display = 'none';
+        $('#guideModal').modal('hide');
     }
 </script>
 

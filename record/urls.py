@@ -30,6 +30,9 @@ urlpatterns = [
     path('create-segment/', views.create_segment, name='create_segment'),
     path('delete-segment/<str:segment_id>/', views.delete_segment, name='delete_segment'),
 
+    path('chatbot/', views.chatbot, name='chatbot'),
+    path('chatbot/handle-task/', views.handle_task_request, name='handle_task_request'),
+
     
 
 

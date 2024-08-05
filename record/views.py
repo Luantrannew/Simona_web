@@ -114,7 +114,6 @@ def upload_csv(request):
 from django.db.models import Max
 def customer_list(request):
   template = 'record/customer_list.html'
-#   customer_objects = Customer.objects.all().annotate(last_order_time=Order.Max('order__time')).order_by('-last_order_time')
   customer_objects = Customer.objects.annotate(last_order_time=Max('order__time')).order_by('-last_order_time')
 
   customers = [{
@@ -452,3 +451,40 @@ def delete_segment(request, segment_id):
     
     context = {}
     return render(request, template, context)
+
+##############################################
+
+from django.views.decorators.csrf import csrf_exempt
+from .tasks import lookup_customer_info
+import json
+
+@csrf_exempt
+def handle_task_request(request):
+    print ('XXXXXXXXXXXXXXXX')
+    if request.method == 'POST':
+        print(request.POST)
+        data = json.loads(request.body)
+        print(data)
+        task_name = data.get('task_name')
+        print(task_name)
+        channel_name = data.get('channel_name')
+        print(channel_name)
+        args = data.get('args', [])
+
+        if task_name == 'lookup_customer_info':
+            # In ra terminal để kiểm tra
+            print(f"Received task: {task_name} with args: {args} and channel_name: {channel_name}")
+            # Gọi task Celery
+            lookup_customer_info.apply_async((channel_name, *args))
+            response = {'status': 'Task initiated.'}
+        else:                                   
+            response = {'status': 'Invalid task name.'}
+        
+        return JsonResponse(response)
+    return JsonResponse({'status': 'Invalid request method.'})
+
+def chatbot(request):
+    template = 'chatbot.html'
+    context = {}
+
+    return render (request, template, context)                   
