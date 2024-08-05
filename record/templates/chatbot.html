@@ -5,12 +5,13 @@
   <div class="main-content">
     <div class="row">
       <div class="col-md-12">
-        <div class="chat-box" id="chat-box">
-        </div>
-        <div class="form-group">
+        <div class="chat-box" id="chat-box"></div>
+        <div class="input-group mb-3">
           <input type="text" class="form-control chat-input" id="chat-input" placeholder="Nhập tin nhắn...">
+          <div class="input-group-append">
+            <button class="btn btn-primary chat-send-btn" id="send-btn">Gửi</button>
+          </div>
         </div>
-        <button class="btn btn-primary chat-send-btn" id="send-btn">Gửi</button>
       </div>
     </div>
   </div>
@@ -37,6 +38,16 @@
   };
 
   document.getElementById('send-btn').addEventListener('click', function() {
+    sendMessage();
+  });
+
+  document.getElementById('chat-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      sendMessage();
+    }
+  });
+
+  function sendMessage() {
     var messageInputDom = document.getElementById('chat-input');
     var message = messageInputDom.value;
     if (message.trim() !== '') {
@@ -52,7 +63,7 @@
       }));
       messageInputDom.value = '';
     }
-  });
+  }
 </script>
 
 {% endblock %}

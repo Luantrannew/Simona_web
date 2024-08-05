@@ -19,70 +19,97 @@
 
     <style>
         .sidebar-nav .btn-secondary {
-            width: 100%;
-            background-color: #6c757d;
-            color: white;
-            margin-bottom: 10px;
+          width: 100%;
+          background-color: #6c757d;
+          color: white;
+          margin-bottom: 10px;
         }
+      
         .drag-drop-area {
-            border: 2px dashed #007bff;
-            border-radius: 5px;
-            padding: 20px;
-            text-align: center;
-            margin-top: 20px;
+          border: 2px dashed #007bff;
+          border-radius: 5px;
+          padding: 20px;
+          text-align: center;
+          margin-top: 20px;
         }
+      
         .sidebar-nav .dropdown-menu {
-            width: 100%;
+          width: 100%;
         }
+      
         .sidebar-nav .dropdown-item {
-            background-color: #6c757d;
-            color: white;
+          background-color: #6c757d;
+          color: white;
         }
+      
         .sidebar-nav .dropdown-item:hover {
-            background-color: #5a6268;
+          background-color: #5a6268;
         }
+      
         .container {
-            display: grid;
-            grid-template-columns: 80% 20%;
-            gap: 20px;
-            padding: 20px;
+          display: grid;
+          grid-template-columns: 80% 20%;
+          gap: 20px;
+          padding: 20px;
         }
+      
         .main-content {
-            grid-column: 1 / 2;
+          grid-column: 1 / 2;
         }
+      
         .sidebar {
-            grid-column: 2 / 3;
-            background-color: #f0f0f0;
-            border-left: 1px solid #ccc;
-            padding: 10px;
+          grid-column: 2 / 3;
+          background-color: #f0f0f0;
+          border-left: 1px solid #ccc;
+          padding: 10px;
         }
-
+      
         .chat-box {
-            border: 1px solid #ccc;
-            padding: 10px;
-            max-height: 400px;
-            overflow-y: auto;
-          }
-          .chat-message {
-            margin: 10px 0;
-            padding: 10px;
-            border-radius: 5px;
-          }
-          .system-message {
-            background-color: #f1f1f1;
-            text-align: left;
-          }
-          .customer-message {
-            background-color: #007bff;
-            color: white;
-            text-align: right;
-            margin-left: auto;
-          }
-          .response-message {
-            background-color: #e7f3fe;
-            text-align: left;
-          }
-    </style>
+          border: 1px solid #ccc;
+          padding: 10px;
+          max-height: 400px;
+          overflow-y: auto;
+        }
+      
+        .chat-message {
+          margin: 10px 0;
+          padding: 10px;
+          border-radius: 15px;
+          word-wrap: break-word;
+          max-width: 80%;
+        }
+      
+        .system-message {
+          background-color: #f1f1f1;
+          text-align: left;
+        }
+      
+        .customer-message {
+          background-color: #007bff;
+          color: white;
+          text-align: right;
+          margin-left: auto;
+        }
+      
+        .response-message {
+          background-color: #e7f3fe;
+          text-align: left;
+        }
+      
+        .input-group {
+          margin-top: 10px;
+          display: flex;
+          align-items: center;
+        }
+      
+        .input-group .form-control {
+          border-radius: 20px 0 0 20px;
+        }
+      
+        .input-group .btn {
+          border-radius: 0 20px 20px 0;
+        }
+      </style>
 </head>
 <body>
     <div class="container-fluid">
