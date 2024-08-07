@@ -72,11 +72,12 @@
         }
       
         .chat-message {
-          margin: 10px 0;
-          padding: 10px;
-          border-radius: 15px;
-          word-wrap: break-word;
-          max-width: 80%;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 15px;
+            word-wrap: break-word;
+            max-width: 80%;
+            white-space: pre-wrap;
         }
       
         .system-message {
@@ -121,6 +122,9 @@
                     <div>
                         <a href="{% url 'index' %}" class="btn btn-secondary text-white" role="button">Trang chủ</a>
                     </div>
+                    <br>
+                    <a href="{% url 'chatbot' %}" class="btn btn-secondary text-white" role="button">Trợ lý ảo</a>
+                    <br>
                     <br>
                     <div class="dropdown">
                         <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuLink" data-toggle="dropdown" aria-expanded="false">

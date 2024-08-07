@@ -22,14 +22,11 @@ COMMANDS = {
 class ShopBotConsumer(WebsocketConsumer):
     
     def receive(self, text_data):
-        print("WebSocket message received")
         text_data_json = json.loads(text_data)
         message = text_data_json.get('message', '')
-
-        print(f"Received message: {message}")
+        message_parts = message.split()
 
         response_message = 'Vui lòng nhập `help` để xem danh sách các lệnh có thể sử dụng.'
-        message_parts = message.split()
 
         if message_parts:
             command = message_parts[0].lower()
@@ -57,14 +54,32 @@ class ShopBotConsumer(WebsocketConsumer):
             'message': response_message
         }))
 
-        print(f"Sent response message: {response_message}")
 
     def chat_message(self, event):
         print("Event received: chat_message")
-        message = event.get('message')
-        print(f"Message from task: {message}")
-        self.send(text_data=json.dumps({
-            'message': f'[Chatbot]: {message}'
-        }))
-        print("Sent message to WebSocket")
+        message = json.loads(event.get('message', '{}'))
+        response_messages = []
 
+        if message.get('status') == 'success':
+            data = message.get('data', {})
+            # Xử lý kết quả cho lệnh 'lookup'
+            if 'customer_code' in data:
+                response_messages.append(f"Mã Khách hàng: {data.get('customer_code')}")
+                response_messages.append(f"Họ và tên khách hàng: {data.get('customer_name')}")
+                response_messages.append(f"Phân khúc: {data.get('customer_segment')}")
+                response_messages.append("Số đơn hàng của khách: " + ', '.join(data.get('orders', [])))
+            # Xử lý kết quả cho lệnh 'order'
+            elif 'order_id' in data:
+                response_messages.append(f"Mã đơn hàng: {data.get('order_id')}")
+                response_messages.append(f"Khách hàng: {data.get('customer_name')}")
+                response_messages.append(f"Sản phẩm: {data.get('product_name')}")
+                response_messages.append(f"Số lượng: {data.get('quantity')}")
+                response_messages.append(f"Tổng tiền: {data.get('total_price')} VND")
+        else:
+            response_messages.append(message.get('message', 'Unknown error'))
+
+        # Gửi từng tin nhắn tới WebSocket
+        for response in response_messages:
+            self.send(text_data=json.dumps({
+                'message': response
+            }))

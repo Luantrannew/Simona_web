@@ -455,7 +455,7 @@ def delete_segment(request, segment_id):
 ##############################################
 
 from django.views.decorators.csrf import csrf_exempt
-from .tasks import lookup_customer_info
+from .tasks import lookup_customer_info,place_order
 import json
 
 @csrf_exempt
@@ -476,6 +476,10 @@ def handle_task_request(request):
             print(f"Received task: {task_name} with args: {args} and channel_name: {channel_name}")
             # Gọi task Celery
             lookup_customer_info.apply_async((channel_name, *args))
+            response = {'status': 'Task initiated.'}
+        elif task_name == 'place_order':
+            print(f"Received task: {task_name} with args: {args} and channel_name: {channel_name}")
+            place_order.apply_async((channel_name, *args))
             response = {'status': 'Task initiated.'}
         else:                                   
             response = {'status': 'Invalid task name.'}
