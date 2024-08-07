@@ -21,6 +21,7 @@ def lookup_customer_info(channel_name, customer_code):
     if customer:
         response = {
             'status': 'success',
+            'command' : 'lookup',
             'data': {
                 'customer_code': customer.code,
                 'customer_name': customer.name,
@@ -31,6 +32,7 @@ def lookup_customer_info(channel_name, customer_code):
     else:
         response = {
             'status': 'error',
+            'command' : 'lookup',
             'message': 'Không tìm thấy khách hàng.'
         }
 
@@ -46,51 +48,60 @@ def lookup_customer_info(channel_name, customer_code):
 
 
 @shared_task
-def place_order(channel_name, customer_code, product_code, quantity):
-    print("Task: place_order started")
+def place_order(channel_name, customer_code, orderlines):
     response = {}
     try:
         # Tìm khách hàng
         customer = Customer.objects.filter(code=customer_code).last()
-        
+
         # Tạo mã đơn hàng mới
         last_order = Order.objects.last()
         new_order_number = (int(last_order.order_code.split('ORD')[1]) + 1) if last_order else 1
         order_code = f'ORD{new_order_number:07d}'
-        
+
         # Tạo đối tượng Order
         order = Order.objects.create(
-            order_code=order_code, 
-            time=timezone.now(), 
-            customer=customer)
-        
-        # Tìm sản phẩm
-        product = Product.objects.filter(code=product_code).last()
-        
-        # Tạo đối tượng OrderLine
-        OrderLine.objects.create(
-            order=order, 
-            product=product, 
-            quantity=int(quantity)
+            order_code=order_code,
+            customer=customer,
+            time=timezone.now()
+        )
+
+        # Tạo các dòng sản phẩm (OrderLine)
+        for line in orderlines:
+            product_code = line.get('product_code')
+            quantity = line.get('quantity')
+            product = Product.objects.filter(code=product_code).last()
+            if not product:
+                raise Product.DoesNotExist(f"Product with code {product_code} does not exist.")
+            
+            OrderLine.objects.create(
+                order=order,
+                product=product,
+                quantity=quantity
             )
-        
+
         response = {
             'status': 'success',
-            'message': f"Đơn hàng {order_code} đã được tạo thành công cho khách hàng {customer.name}."
+            'command': 'order',
+            'message': f"Đơn hàng {order_code} đã được tạo thành công cho khách hàng {customer.name}.",
+            'order_id': order_code
         }
     except Customer.DoesNotExist:
         response = {
             'status': 'error',
+            'command': 'order',
             'message': 'Không tìm thấy khách hàng.'
         }
-    except Product.DoesNotExist:
+    except Product.DoesNotExist as e:
         response = {
             'status': 'error',
-            'message': 'Không tìm thấy sản phẩm.'
+            'command': 'order',
+            'message': str(e)
         }
     except Exception as e:
         response = {
             'status': 'error',
+            'command': 'order',
             'message': f'Có lỗi xảy ra: {str(e)}'
         }
 
@@ -99,4 +110,4 @@ def place_order(channel_name, customer_code, product_code, quantity):
         'type': 'chat.message',
         'message': json.dumps(response)
     })
-    print("Task: place_order completed")
+
