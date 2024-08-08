@@ -9,7 +9,7 @@ This is a Django-based Order Management System that manages customers, products,
 
 ## Screenshots
 
-![image](https://github.com/user-attachments/assets/c80865c0-eb59-45e2-b1b1-60ee7646ee62)
+![image](https://github.com/user-attachments/assets/a4b278f5-e12d-48b1-b487-49aae2e4a4b8)
 *Chatbot*
 
 
