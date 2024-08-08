@@ -9,9 +9,10 @@ This is a Django-based Order Management System that manages customers, products,
 
 ## Screenshots
 
-![Chatbot](![image](https://github.com/user-attachments/assets/2043cc2e-085a-431e-a816-c9bc6c68924d)
-)
+![image](https://github.com/user-attachments/assets/c80865c0-eb59-45e2-b1b1-60ee7646ee62)
 *Chatbot*
+
+
 
 ![Customers List](https://github.com/Luantrannew/Simona_web/assets/62492632/7c6d7685-2c3b-42b3-b4d6-d99ccbc6e560)
 *Modal*
