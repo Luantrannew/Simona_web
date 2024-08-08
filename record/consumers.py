@@ -90,7 +90,7 @@ class ShopBotConsumer(WebsocketConsumer):
                 response_messages.append(f"Phân khúc: {data.get('customer_segment')}")
                 response_messages.append("Số đơn hàng của khách: " + ', '.join(data.get('orders', [])))
             elif command == 'order':
-                response_messages.append(f"Mã đơn hàng: {data.get('order')}")
+                response_messages.append(f"Mã đơn hàng: {data.get('order_id')}")
                 response_messages.append(f"Khách hàng: {data.get('customer_name')}")
                 for line in data.get('orderlines', []):
                     response_messages.append(f"Sản phẩm: {line.get('product_name')}, Số lượng: {line.get('quantity')}")
